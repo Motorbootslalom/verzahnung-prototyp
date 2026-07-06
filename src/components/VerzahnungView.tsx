@@ -6,6 +6,8 @@ import {
   useSensor,
   useSensors,
   closestCorners,
+  pointerWithin,
+  type CollisionDetection,
   type DragEndEvent,
   type DragOverEvent,
   type DragStartEvent,
@@ -14,7 +16,9 @@ import { arrayMove } from '@dnd-kit/sortable'
 import { useStore } from '../state/store'
 import { CLASSES, classColor, getClass } from '../lib/classes'
 import { classCounts, computeVerzahnung, itemDragId } from '../lib/verzahnung'
-import type { ClassId, Parcours, TrackItem, WechselFaktor } from '../types'
+import { formatVerzahnungExport } from '../lib/exportText'
+import { buildConfigUrl } from '../lib/urlconfig'
+import type { AppState, ClassId, Parcours, TrackItem, WechselFaktor } from '../types'
 import { TrackContainer } from './TrackContainer'
 import { ClassChipPresentation } from './ClassChip'
 import { PauseChipPresentation } from './PauseChip'
@@ -28,6 +32,18 @@ const FACTOR_HINTS: Record<WechselFaktor, string> = {
 
 function newPause(): TrackItem {
   return { kind: 'pause', id: 'pause_' + Math.random().toString(36).slice(2, 9), length: 1 }
+}
+
+/**
+ * Kollisionserkennung für die Spuren: zuerst pointer-basiert, damit auch eine
+ * leere Spur zuverlässig als Ziel erkannt wird (der Mauszeiger liegt dann im
+ * Container). Nur wenn der Zeiger über keiner Zone liegt, wird auf die
+ * geometrische Erkennung (closestCorners) zurückgefallen.
+ */
+const trackCollisionDetection: CollisionDetection = (args) => {
+  const pointerCollisions = pointerWithin(args)
+  if (pointerCollisions.length > 0) return pointerCollisions
+  return closestCorners(args)
 }
 
 export function VerzahnungView() {
@@ -46,8 +62,7 @@ export function VerzahnungView() {
           Klassen werden nach Starterzahl möglichst gleichmäßig auf die Spuren verteilt, sodass immer
           ein Boots-Wechsel stattfindet. Ziehe Klassen-Blöcke per Drag&amp;Drop zwischen den Spuren
           oder ändere ihre Reihenfolge. Mit <b>+ Pause</b> fügst du einen Versatz ein – die Spur setzt
-          dort die angegebene Anzahl Starts aus, sodass die nächste Klasse später einsetzt (keine
-          Leerzeile in der Startliste).
+          dort die angegebene Anzahl Starts aus, sodass die nächste Klasse später einsetzt.
         </p>
         {unassigned.length > 0 && (
           <p className="note" style={{ color: 'var(--danger)' }}>
@@ -57,6 +72,8 @@ export function VerzahnungView() {
         )}
       </div>
 
+      <ExportPanel state={state} />
+
       {state.parcoursList.map((p) => (
         <ParcoursCard key={p.id} parcours={p} />
       ))}
@@ -65,6 +82,59 @@ export function VerzahnungView() {
         + Parcours hinzufügen
       </button>
     </>
+  )
+}
+
+async function copyText(text: string): Promise<boolean> {
+  try {
+    await navigator.clipboard.writeText(text)
+    return true
+  } catch {
+    return false
+  }
+}
+
+/**
+ * Aufklappbare Box zum Exportieren der aktuellen Verzahnung (für die
+ * Optimierung durch Claude) sowie zum Erzeugen eines teilbaren Konfig-Links.
+ */
+function ExportPanel({ state }: { state: AppState }) {
+  const [open, setOpen] = useState(false)
+  const [copied, setCopied] = useState<'export' | 'link' | null>(null)
+
+  const exportText = useMemo(() => formatVerzahnungExport(state), [state])
+
+  async function flash(which: 'export' | 'link', text: string) {
+    const ok = await copyText(text)
+    if (ok) {
+      setCopied(which)
+      setTimeout(() => setCopied(null), 1500)
+    }
+  }
+
+  const configUrl = () =>
+    buildConfigUrl(state, typeof window !== 'undefined' ? window.location.href : '')
+
+  return (
+    <div className="panel">
+      <div className="export-head">
+        <button className="btn ghost sm" onClick={() => setOpen((o) => !o)}>
+          {open ? '▾' : '▸'} Für Optimierung exportieren
+        </button>
+        <span className="spacer" style={{ flex: 1 }} />
+        <button className="btn sm" onClick={() => flash('link', configUrl())} title={configUrl()}>
+          {copied === 'link' ? '✓ Link kopiert' : '🔗 Konfig-Link kopieren'}
+        </button>
+        <button className="btn sm primary" onClick={() => flash('export', exportText)}>
+          {copied === 'export' ? '✓ Kopiert' : '📋 Verzahnung kopieren'}
+        </button>
+      </div>
+      <p className="hint" style={{ margin: '8px 0 0' }}>
+        Kopiere die Verzahnung als Text und gib sie Claude zur Optimierung – oder teile den
+        Konfig-Link (Klassenverteilung, Parcours &amp; Faktoren), um dieses Szenario direkt zu öffnen.
+      </p>
+      {open && <textarea className="export-text" readOnly value={exportText} rows={16} />}
+    </div>
   )
 }
 
@@ -263,7 +333,7 @@ function ParcoursCard({ parcours }: { parcours: Parcours }) {
           ) : (
             <DndContext
               sensors={sensors}
-              collisionDetection={closestCorners}
+              collisionDetection={trackCollisionDetection}
               onDragStart={onDragStart}
               onDragOver={onDragOver}
               onDragEnd={onDragEnd}

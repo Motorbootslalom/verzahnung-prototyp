@@ -38,6 +38,8 @@ export type Action =
       eventJahr: number
       originMode: OriginMode
       counts: Partial<Record<ClassId, number>>
+      /** Optionale Parcours-Vorgabe (z. B. aus URL-Parametern); sonst Standard. */
+      parcoursConfig?: { classIds: ClassId[]; wechselFaktor: WechselFaktor; tracks?: TrackItem[][] }[]
     }
   | { type: 'SET_EVENT'; eventName: string; eventJahr: number }
   | { type: 'SET_ORIGIN_MODE'; originMode: OriginMode }
@@ -66,13 +68,23 @@ function reducer(state: AppState, action: Action): AppState {
           )
         }
       }
+      const parcoursList =
+        action.parcoursConfig && action.parcoursConfig.length > 0
+          ? action.parcoursConfig.map((pc, i) => ({
+              id: uid('par'),
+              name: `Parcours ${i + 1}`,
+              classIds: pc.classIds,
+              wechselFaktor: pc.wechselFaktor,
+              tracks: pc.tracks,
+            }))
+          : defaultParcours()
       return {
         ...state,
         eventName: action.eventName,
         eventJahr: action.eventJahr,
         originMode: action.originMode,
         participants,
-        parcoursList: defaultParcours(),
+        parcoursList,
         initialized: true,
       }
     }

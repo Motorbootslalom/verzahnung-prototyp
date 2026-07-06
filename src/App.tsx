@@ -1,14 +1,38 @@
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useStore } from './state/store'
 import { SetupScreen } from './components/SetupScreen'
 import { ParticipantsView } from './components/ParticipantsView'
 import { VerzahnungView } from './components/VerzahnungView'
+import { parseUrlConfig } from './lib/urlconfig'
 
 type Tab = 'teilnehmer' | 'verzahnung'
 
 export function App() {
   const { state, dispatch } = useStore()
   const [tab, setTab] = useState<Tab>('teilnehmer')
+  const urlApplied = useRef(false)
+
+  // Konfiguration aus URL-Parametern übernehmen (Klassenverteilung, Parcours,
+  // Faktoren). Erzeugt das Starterfeld neu und entfernt danach die Parameter,
+  // damit ein Reload nicht erneut würfelt.
+  useEffect(() => {
+    if (urlApplied.current) return
+    const cfg = parseUrlConfig(window.location.search)
+    if (!cfg) return
+    urlApplied.current = true
+    dispatch({
+      type: 'INIT_SETUP',
+      eventName: cfg.eventName ?? state.eventName,
+      eventJahr: cfg.eventJahr ?? state.eventJahr,
+      originMode: cfg.originMode ?? state.originMode,
+      counts: cfg.counts,
+      parcoursConfig: cfg.parcours.length > 0 ? cfg.parcours : undefined,
+    })
+    setTab('verzahnung')
+    window.history.replaceState(null, '', window.location.pathname)
+    // Nur einmal beim Mounten anwenden.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
   if (!state.initialized) {
     return (

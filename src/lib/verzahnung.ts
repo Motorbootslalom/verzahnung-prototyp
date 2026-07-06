@@ -37,16 +37,58 @@ export function presentClasses(parcours: Parcours, participants: Participant[]):
     .sort((a, b) => classOrderIndex(a) - classOrderIndex(b))
 }
 
+/** Wandelt Klassen-Gruppen (je Spur) in kanonisch sortierte Klassen-Blöcke um. */
+function bucketsToTracks(buckets: ClassId[][]): TrackItem[][] {
+  return buckets.map((b) =>
+    b.sort((a, c) => classOrderIndex(a) - classOrderIndex(c)).map((klasse) => ({
+      kind: 'class' as const,
+      klasse,
+    })),
+  )
+}
+
 /**
- * Verteilt die vorhandenen Klassen möglichst gleichmäßig (nach Starterzahl) auf N Spuren.
- * Greedy: größte Klassen zuerst, jeweils in die aktuell kleinste Spur.
- * Innerhalb einer Spur werden die Klassen in kanonischer Reihenfolge abgearbeitet.
+ * Exakt ausgeglichene 2-Spur-Aufteilung (Partition-Problem). Minimiert die
+ * Differenz der Starterzahlen beider Spuren – bei Faktor 2 bestimmt genau diese
+ * Differenz die Länge des un-verzahnten End-Blocks. Bei ≤ ~20 Klassen werden
+ * alle Teilmengen geprüft (hier immer ≤ 8), sonst greift die Greedy-Verteilung.
  */
-export function autoDistribute(
-  classes: ClassId[],
-  counts: Map<ClassId, number>,
-  n: number,
-): TrackItem[][] {
+function twoWayBalanced(classes: ClassId[], counts: Map<ClassId, number>): TrackItem[][] {
+  const n = classes.length
+  if (n > 20) return greedyDistribute(classes, counts, 2)
+
+  const cnt = (c: ClassId) => counts.get(c) ?? 0
+  const total = classes.reduce((s, c) => s + cnt(c), 0)
+
+  let bestMask = 0
+  let bestDiff = Infinity
+  const full = 1 << n
+  for (let mask = 0; mask < full; mask++) {
+    let sum = 0
+    for (let i = 0; i < n; i++) if (mask & (1 << i)) sum += cnt(classes[i])
+    const diff = Math.abs(total - 2 * sum)
+    if (diff < bestDiff) {
+      bestDiff = diff
+      bestMask = mask
+    }
+  }
+
+  const groupA: ClassId[] = []
+  const groupB: ClassId[] = []
+  for (let i = 0; i < n; i++) (bestMask & (1 << i) ? groupA : groupB).push(classes[i])
+
+  // Größere Spur zuerst: ihr eventueller Rest am Ende wird dann von der anderen
+  // Spur vom gleichklassigen Vorgänger getrennt und der End-Block bleibt kürzer.
+  const sum = (g: ClassId[]) => g.reduce((s, c) => s + cnt(c), 0)
+  const groups = [groupA, groupB].sort((a, b) => sum(b) - sum(a))
+  return bucketsToTracks(groups)
+}
+
+/**
+ * Greedy-Verteilung auf N Spuren: größte Klassen zuerst, jeweils in die aktuell
+ * kleinste Spur. Innerhalb einer Spur kanonische Reihenfolge.
+ */
+function greedyDistribute(classes: ClassId[], counts: Map<ClassId, number>, n: number): TrackItem[][] {
   const buckets: ClassId[][] = Array.from({ length: n }, () => [])
   const sums = new Array(n).fill(0)
 
@@ -62,12 +104,21 @@ export function autoDistribute(
     sums[best] += counts.get(c) ?? 0
   }
 
-  return buckets.map((b) =>
-    b.sort((a, c) => classOrderIndex(a) - classOrderIndex(c)).map((klasse) => ({
-      kind: 'class' as const,
-      klasse,
-    })),
-  )
+  return bucketsToTracks(buckets)
+}
+
+/**
+ * Verteilt die vorhandenen Klassen möglichst gleichmäßig (nach Starterzahl) auf N Spuren.
+ * Für Faktor 2 wird die exakt ausgeglichene Aufteilung gesucht (kürzester End-Block),
+ * für mehr Spuren die Greedy-Heuristik genutzt.
+ */
+export function autoDistribute(
+  classes: ClassId[],
+  counts: Map<ClassId, number>,
+  n: number,
+): TrackItem[][] {
+  if (n === 2) return twoWayBalanced(classes, counts)
+  return greedyDistribute(classes, counts, n)
 }
 
 /** Nur die Klassen-Blöcke einer Spur-Anordnung (Pausen ignoriert), als flache Liste. */
@@ -175,6 +226,46 @@ export interface VerzahnungResult {
   sequence: Participant[]
   /** true, wenn die manuelle Anordnung genutzt wurde (statt Auto-Verteilung). */
   manual: boolean
+}
+
+export interface SequenceAnalysis {
+  /** Anzahl Starter in der Reihenfolge. */
+  total: number
+  /** Benachbarte Paare mit Klassenwechsel (echter Bootswechsel möglich). */
+  wechsel: number
+  /** Benachbarte Paare derselben Klasse (kein Wechsel). */
+  nonWechsel: number
+  /** Klasse des End-Blocks (letzte Starter derselben Klasse) bzw. null. */
+  trailingKlasse: ClassId | null
+  /**
+   * Länge des zusammenhängenden End-Blocks derselben Klasse. Diese Starter
+   * laufen ohne Verzahnung, weil keine andere Klasse mehr zum Wechseln übrig ist.
+   */
+  trailingRun: number
+}
+
+/**
+ * Bewertet eine Startreihenfolge: Wie viele echte Wechsel gibt es, und wie
+ * lang ist der un-verzahnte End-Block (die Kennzahl, die es zu minimieren gilt)?
+ */
+export function analyzeSequence(sequence: Participant[]): SequenceAnalysis {
+  const total = sequence.length
+  let wechsel = 0
+  let nonWechsel = 0
+  for (let i = 1; i < total; i++) {
+    if (sequence[i].klasse === sequence[i - 1].klasse) nonWechsel++
+    else wechsel++
+  }
+
+  let trailingKlasse: ClassId | null = null
+  let trailingRun = 0
+  if (total > 0) {
+    trailingKlasse = sequence[total - 1].klasse
+    trailingRun = 1
+    for (let i = total - 2; i >= 0 && sequence[i].klasse === trailingKlasse; i--) trailingRun++
+  }
+
+  return { total, wechsel, nonWechsel, trailingKlasse, trailingRun }
 }
 
 /**

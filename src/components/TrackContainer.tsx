@@ -1,5 +1,5 @@
 import { useDroppable } from '@dnd-kit/core'
-import { SortableContext, horizontalListSortingStrategy } from '@dnd-kit/sortable'
+import { SortableContext, rectSortingStrategy } from '@dnd-kit/sortable'
 import type { ClassId, TrackItem } from '../types'
 import { itemDragId } from '../lib/verzahnung'
 import { ClassChip } from './ClassChip'
@@ -41,7 +41,7 @@ export function TrackContainer({
           </button>
         </span>
       </div>
-      <SortableContext items={items.map(itemDragId)} strategy={horizontalListSortingStrategy}>
+      <SortableContext items={items.map(itemDragId)} strategy={rectSortingStrategy}>
         <div className="track-blocks">
           {!hasClasses && items.length === 0 ? (
             <span style={{ color: 'var(--muted)', fontSize: 12 }}>Klasse hierher ziehen…</span>

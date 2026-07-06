@@ -7,6 +7,7 @@ import {
   tracksMatch,
   buildSequence,
   computeVerzahnung,
+  analyzeSequence,
   itemDragId,
 } from './verzahnung'
 import type { ClassId, Parcours, Participant, TrackItem } from '../types'
@@ -65,6 +66,31 @@ describe('autoDistribute (gleichmäßige Verteilung nach Starterzahl)', () => {
   it('erzeugt genau N Spuren', () => {
     const counts = classCounts([...make('3', 5), ...make('1', 4)])
     expect(autoDistribute(['1', '3'], counts, 4)).toHaveLength(4)
+  })
+
+  it('Faktor 2: findet die exakt ausgeglichene Aufteilung, wo Greedy 27/29 liefert', () => {
+    // Reales 56-Starter-Feld: perfekte Partition 28/28 existiert (z. B. 5,6,7 | E,1,2,3,4).
+    const ps = [
+      ...make('E', 1),
+      ...make('1', 4),
+      ...make('2', 8),
+      ...make('3', 9),
+      ...make('4', 6),
+      ...make('5', 10),
+      ...make('6', 7),
+      ...make('7', 11),
+    ]
+    const counts = classCounts(ps)
+    const classes: ClassId[] = ['E', '1', '2', '3', '4', '5', '6', '7']
+    const tracks = autoDistribute(classes, counts, 2)
+    const sums = tracks.map((t) => t.reduce((s, it) => s + (it.kind === 'class' ? counts.get(it.klasse)! : 0), 0))
+    expect(sums).toEqual([28, 28])
+
+    // Ausgeglichen ⇒ vollständig durchverzahnt: kein Paar gleicher Klasse hintereinander.
+    const parc: Parcours = { id: 'p', name: 'P', classIds: classes, wechselFaktor: 2 }
+    const a = analyzeSequence(computeVerzahnung(parc, ps).sequence)
+    expect(a.nonWechsel).toBe(0)
+    expect(a.trailingRun).toBe(1)
   })
 })
 
