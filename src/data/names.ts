@@ -1,0 +1,55 @@
+// Zufalls-Namenspool für die generierten Teilnehmer.
+
+export const NACHNAMEN: string[] = [
+  'Müller', 'Schmidt', 'Schneider', 'Fischer', 'Weber', 'Meyer', 'Wagner', 'Becker', 'Schulz', 'Hoffmann',
+  'Schäfer', 'Koch', 'Bauer', 'Richter', 'Klein', 'Wolf', 'Schröder', 'Neumann', 'Schwarz', 'Zimmermann',
+  'Braun', 'Krüger', 'Hofmann', 'Hartmann', 'Lange', 'Schmitt', 'Werner', 'Schmitz', 'Krause', 'Meier',
+  'Lehmann', 'Schmid', 'Schulze', 'Maier', 'Köhler', 'Herrmann', 'König', 'Walter', 'Mayer', 'Huber',
+  'Kaiser', 'Fuchs', 'Peters', 'Lang', 'Scholz', 'Möller', 'Weiß', 'Jung', 'Hahn', 'Schubert',
+  'Vogel', 'Friedrich', 'Keller', 'Günther', 'Frank', 'Berger', 'Winkler', 'Roth', 'Beck', 'Lorenz',
+  'Baumann', 'Franke', 'Albrecht', 'Schuster', 'Simon', 'Ludwig', 'Böhm', 'Winter', 'Kraus', 'Martin',
+  'Schumacher', 'Krämer', 'Vogt', 'Stein', 'Jäger', 'Otto', 'Sommer', 'Groß', 'Seidel', 'Heinrich',
+  'Brandt', 'Haas', 'Schreiber', 'Graf', 'Schulte', 'Dietrich', 'Ziegler', 'Kuhn', 'Kühn', 'Pohl',
+  'Engel', 'Horn', 'Busch', 'Bergmann', 'Thomas', 'Voigt', 'Sauer', 'Arnold', 'Wolff', 'Pfeiffer',
+  'Yilmaz', 'Kaya', 'Öztürk', 'Demir', 'Şahin', 'Çelik', 'Aydın', 'Yildiz', 'Kaplan', 'Koç',
+  'Nguyen', 'Nowak', 'Kowalski', 'Wisniewski', 'Petrov', 'Ivanov', 'Hussein', 'Ali', 'Khan', 'Petersen',
+  'Hansen', 'Jansen', 'Janssen', 'Bach', 'Barth', 'Bode', 'Böttcher', 'Brand', 'Bruns', 'Buchholz',
+  'Dietz', 'Ebert', 'Ernst', 'Fiedler', 'Förster', 'Gebhardt', 'Geiger', 'Gerlach', 'Haase', 'Heck',
+  'Heller', 'Henning', 'Hermann', 'Hess', 'Hübner', 'Jahn', 'Kirchner', 'Kramer', 'Lindner', 'Marx',
+]
+
+export const VORNAMEN_M: string[] = [
+  'Ben', 'Paul', 'Leon', 'Finn', 'Jonas', 'Luis', 'Noah', 'Elias', 'Felix', 'Lukas',
+  'Maximilian', 'Henry', 'Emil', 'Anton', 'Oskar', 'Theo', 'Matteo', 'Liam', 'Luca', 'Niklas',
+  'Jan', 'Tim', 'Tom', 'Max', 'Moritz', 'Julian', 'David', 'Simon', 'Philipp', 'Jakob',
+  'Samuel', 'Alexander', 'Fabian', 'Erik', 'Vincent', 'Leo', 'Mats', 'Jannik', 'Julius', 'Linus',
+  'Nico', 'Milan', 'Levi', 'Adrian', 'Aaron', 'Rafael', 'Gabriel', 'Daniel', 'Sebastian', 'Florian',
+  'Joel', 'Jona', 'Till', 'Lennard', 'Lennox', 'Hannes', 'Johann', 'Johannes', 'Karl', 'Carl',
+  'Friedrich', 'Frederik', 'Konstantin', 'Leonard', 'Levin', 'Bruno', 'Carlo', 'Piet', 'Fiete', 'Ole',
+  'Jonte', 'Jannis', 'Yannick', 'Joshua', 'Justus', 'Kilian', 'Kian', 'Damian', 'Fabio', 'Marlon',
+  'Mika', 'Mio', 'Nils', 'Ruben', 'Silas', 'Timo', 'Tobias', 'Valentin', 'Benedikt', 'Benjamin',
+  'Christian', 'Christopher', 'Dominik', 'Elian', 'Emilio', 'Enno', 'Fynn', 'Georg', 'Gustav', 'Hendrik',
+  'Ali', 'Amir', 'Arda', 'Aras', 'Can', 'Deniz', 'Emir', 'Enes', 'Hamza', 'Kerem',
+  'Malik', 'Mehmet', 'Mert', 'Miran', 'Mohammed', 'Mustafa', 'Omar', 'Selim', 'Tarik', 'Yusuf',
+  'Alessio', 'Andrei', 'Antonio', 'Artem', 'Bela', 'Bosse', 'Caspar', 'Cornelius', 'Dean', 'Devin',
+  'Elyas', 'Ferdinand', 'Filip', 'Henri', 'Ivo', 'Jarne', 'Jasper', 'Jesse', 'Jim', 'John',
+  'Josef', 'Juri', 'Kalle', 'Kurt', 'Laurenz', 'Lasse', 'Leopold', 'Ludwig', 'Magnus', 'Mattis',
+]
+
+export const VORNAMEN_W: string[] = [
+  'Mia', 'Emma', 'Hannah', 'Sophia', 'Emilia', 'Lina', 'Marie', 'Mila', 'Lea', 'Anna',
+  'Leonie', 'Lena', 'Clara', 'Charlotte', 'Amelie', 'Luisa', 'Johanna', 'Laura', 'Nele', 'Sophie',
+  'Maja', 'Lilly', 'Ella', 'Ida', 'Frieda', 'Mathilda', 'Greta', 'Paula', 'Marlene', 'Josephine',
+  'Pia', 'Zoe', 'Emily', 'Sarah', 'Julia', 'Melina', 'Selina', 'Celina', 'Jana', 'Finja',
+  'Merle', 'Thea', 'Tilda', 'Romy', 'Juna', 'Lotta', 'Carla', 'Helena', 'Elena', 'Isabella',
+  'Victoria', 'Antonia', 'Alina', 'Elisa', 'Elif', 'Aylin', 'Melisa', 'Lara', 'Nora', 'Lia',
+  'Mira', 'Mina', 'Alma', 'Aurelia', 'Amira', 'Amelia', 'Alea', 'Alexandra', 'Alicia', 'Amy',
+  'Anastasia', 'Anni', 'Annika', 'Ayla', 'Azra', 'Carlotta', 'Celine', 'Chiara', 'Dilara', 'Defne',
+  'Eda', 'Elin', 'Elina', 'Elisabeth', 'Elsa', 'Emmi', 'Esma', 'Fabienne', 'Fenja', 'Fiona',
+  'Flora', 'Franka', 'Freya', 'Frida', 'Giulia', 'Hanna', 'Heidi', 'Helene', 'Hermine', 'Ilayda',
+  'Ina', 'Ines', 'Isabel', 'Jasmin', 'Jette', 'Jolina', 'Jule', 'Juli', 'Julie', 'Karla',
+  'Katharina', 'Kira', 'Klara', 'Lana', 'Larissa', 'Laila', 'Leni', 'Leyla', 'Liana', 'Lilith',
+  'Lisa', 'Liv', 'Livia', 'Lorena', 'Lucia', 'Lucy', 'Luna', 'Lynn', 'Madita', 'Magdalena',
+  'Malia', 'Mara', 'Martha', 'Mathea', 'Medina', 'Melek', 'Melissa', 'Milena', 'Miray', 'Nela',
+  'Nika', 'Nisa', 'Olivia', 'Rosa', 'Ronja', 'Samira', 'Stella', 'Talia', 'Valentina', 'Yara',
+]
