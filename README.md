@@ -1,5 +1,7 @@
 # Verzahnung – Schlauchbootslalom (Prototyp)
 
+**Live-Demo:** <https://motorbootslalom.github.io/verzahnung-prototyp/>
+
 Interaktiver Konzept-**Prototyp** zur **Verzahnung von Startern** beim Schlauchbootslalom.
 Ziel: mit den Fachteams klären, ob Darstellung und Verwaltung der Starterlisten hilfreich sind
 und in das neue Auswertungstool übernommen werden sollen.
@@ -102,7 +104,8 @@ Die Tests laufen automatisch:
 1. Repository auf GitHub anlegen und pushen.
 2. In **Settings → Pages → Build and deployment → Source** auf **GitHub Actions** stellen.
 3. Bei jedem Push auf `main` baut und deployt der Workflow
-   [`.github/workflows/deploy.yml`](.github/workflows/deploy.yml) automatisch.
+   [`.github/workflows/deploy.yml`](.github/workflows/deploy.yml) automatisch nach
+   <https://motorbootslalom.github.io/verzahnung-prototyp/>.
 
 Der Vite-`base` ist auf `./` gesetzt, daher funktioniert die App sowohl unter einem
 Projekt-Unterpfad (`https://<user>.github.io/<repo>/`) als auch lokal.
