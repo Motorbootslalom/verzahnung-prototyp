@@ -14,7 +14,7 @@ import {
 } from '@dnd-kit/core'
 import { arrayMove } from '@dnd-kit/sortable'
 import { useStore } from '../state/store'
-import { CLASSES, classColor, getClass } from '../lib/classes'
+import { CLASSES, CLASS_IDS, classColor, getClass } from '../lib/classes'
 import { classCounts, computeVerzahnung, itemDragId } from '../lib/verzahnung'
 import { formatVerzahnungExport } from '../lib/exportText'
 import { buildConfigUrl } from '../lib/urlconfig'
@@ -32,6 +32,19 @@ const FACTOR_HINTS: Record<WechselFaktor, string> = {
 
 function newPause(): TrackItem {
   return { kind: 'pause', id: 'pause_' + Math.random().toString(36).slice(2, 9), length: 1 }
+}
+
+/** Vorlagen für die Parcours-Aufteilung (schneller Wechsel ohne manuelles Löschen). */
+const PARCOURS_PRESETS: { key: string; label: string; groups: ClassId[][] }[] = [
+  { key: 'all', label: '1 Parcours (alle)', groups: [['E', '1', '2', '3', '4', '5', '6', '7']] },
+  { key: 'split', label: '2 Parcours (E–3 · 4–7)', groups: [['E', '1', '2', '3'], ['4', '5', '6', '7']] },
+]
+
+/** Kanonische Signatur einer Klassen-Gruppierung – für den Abgleich mit einer Vorlage. */
+function groupsSignature(groups: ClassId[][]): string {
+  return groups
+    .map((g) => [...g].sort((a, b) => CLASS_IDS.indexOf(a) - CLASS_IDS.indexOf(b)).join(''))
+    .join('|')
 }
 
 /**
@@ -54,6 +67,8 @@ export function VerzahnungView() {
     (c) => !assignedClasses.has(c.id) && state.participants.some((p) => p.klasse === c.id),
   )
 
+  const currentSig = groupsSignature(state.parcoursList.map((p) => p.classIds))
+
   return (
     <>
       <div className="panel">
@@ -64,6 +79,31 @@ export function VerzahnungView() {
           oder ändere ihre Reihenfolge. Mit <b>+ Pause</b> fügst du einen Versatz ein – die Spur setzt
           dort die angegebene Anzahl Starts aus, sodass die nächste Klasse später einsetzt.
         </p>
+        <div className="preset-row">
+          <span className="preset-label">Schnellauswahl:</span>
+          <div className="segmented">
+            {PARCOURS_PRESETS.map((pr) => {
+              const active = currentSig === groupsSignature(pr.groups)
+              return (
+                <button
+                  key={pr.key}
+                  type="button"
+                  className={active ? 'active' : ''}
+                  onClick={() => {
+                    if (!active) dispatch({ type: 'SET_PARCOURS_PRESET', groups: pr.groups })
+                  }}
+                  title={
+                    active
+                      ? 'Diese Aufteilung ist bereits aktiv'
+                      : 'Parcours auf diese Aufteilung setzen (ersetzt die aktuelle)'
+                  }
+                >
+                  {pr.label}
+                </button>
+              )
+            })}
+          </div>
+        </div>
         {unassigned.length > 0 && (
           <p className="note" style={{ color: 'var(--danger)' }}>
             Nicht zugeordnet (fahren auf keinem Parcours):{' '}

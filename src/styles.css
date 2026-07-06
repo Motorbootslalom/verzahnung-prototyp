@@ -757,3 +757,18 @@ table.starters tr:hover td {
   resize: vertical;
   white-space: pre;
 }
+
+/* ---------- Parcours-Schnellauswahl ---------- */
+.preset-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-top: 4px;
+}
+
+.preset-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--muted);
+}

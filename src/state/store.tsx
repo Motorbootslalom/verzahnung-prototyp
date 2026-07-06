@@ -49,6 +49,7 @@ export type Action =
   | { type: 'REMOVE_PARTICIPANT'; id: string }
   | { type: 'CLEAR_CLASS'; klasse: ClassId }
   | { type: 'ADD_PARCOURS' }
+  | { type: 'SET_PARCOURS_PRESET'; groups: ClassId[][]; wechselFaktor?: WechselFaktor }
   | { type: 'REMOVE_PARCOURS'; id: string }
   | { type: 'RENAME_PARCOURS'; id: string; name: string }
   | { type: 'SET_PARCOURS_CLASSES'; id: string; classIds: ClassId[] }
@@ -132,6 +133,17 @@ function reducer(state: AppState, action: Action): AppState {
           classIds: [],
           wechselFaktor: 2,
         }),
+      }
+
+    case 'SET_PARCOURS_PRESET':
+      return {
+        ...state,
+        parcoursList: action.groups.map((classIds, i) => ({
+          id: uid('par'),
+          name: `Parcours ${i + 1}`,
+          classIds,
+          wechselFaktor: action.wechselFaktor ?? 2,
+        })),
       }
 
     case 'REMOVE_PARCOURS':
