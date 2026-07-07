@@ -713,6 +713,17 @@ table.starters tr:hover td {
   justify-content: center;
 }
 
+.flow-preview .fp-gap {
+  display: flex;
+  align-items: center;
+  padding: 0 8px;
+  height: 22px;
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--muted);
+  white-space: nowrap;
+}
+
 .stat-row {
   display: flex;
   gap: 18px;

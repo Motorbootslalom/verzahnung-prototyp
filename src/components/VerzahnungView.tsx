@@ -418,22 +418,37 @@ function ParcoursCard({ parcours }: { parcours: Parcours }) {
   )
 }
 
+const PREVIEW_LIMIT = 100
+const PREVIEW_EDGE = 50
+
 function FlowPreview({ parcours }: { parcours: Parcours }) {
   const { state } = useStore()
   const verz = computeVerzahnung(parcours, state.participants)
-  const preview = verz.sequence.slice(0, 60)
-  if (preview.length === 0) return null
+  const seq = verz.sequence
+  if (seq.length === 0) return null
+
+  // Bis 100 alles zeigen; darüber die ersten 50 und die letzten 50 – der
+  // un-verzahnte End-Block ist besonders wichtig.
+  const truncated = seq.length > PREVIEW_LIMIT
+  const head = truncated ? seq.slice(0, PREVIEW_EDGE) : seq
+  const tail = truncated ? seq.slice(seq.length - PREVIEW_EDGE) : []
+  const hidden = seq.length - head.length - tail.length
+
+  const chip = (p: (typeof seq)[number], key: string, offset: number) => (
+    <span key={key} className="fp" style={{ background: classColor(p.klasse) }} title={`#${offset} · ${p.startNr}`}>
+      {p.klasse}
+    </span>
+  )
+
   return (
     <>
       <div className="subhead" style={{ marginTop: 14 }}>
-        Wechsel-Vorschau {verz.sequence.length > 60 ? '(erste 60)' : ''}
+        Wechsel-Vorschau {truncated ? '(erste 50 & letzte 50)' : ''}
       </div>
       <div className="flow-preview">
-        {preview.map((p, i) => (
-          <span key={i} className="fp" style={{ background: classColor(p.klasse) }} title={p.startNr}>
-            {p.klasse}
-          </span>
-        ))}
+        {head.map((p, i) => chip(p, `h${i}`, i + 1))}
+        {truncated && <span className="fp-gap">… {hidden} weitere …</span>}
+        {tail.map((p, i) => chip(p, `t${i}`, seq.length - tail.length + i + 1))}
       </div>
     </>
   )
