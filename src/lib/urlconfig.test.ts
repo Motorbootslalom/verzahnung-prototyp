@@ -26,6 +26,8 @@ const state: AppState = {
     { id: 'p1', name: 'Parcours 1', classIds: ['E', '1'], wechselFaktor: 2 },
     { id: 'p2', name: 'Parcours 2', classIds: ['3'], wechselFaktor: 3 },
   ],
+  boats: { klein: 3, gross: 2 },
+  class4Small: false,
 }
 
 describe('parseUrlConfig', () => {
@@ -40,6 +42,18 @@ describe('parseUrlConfig', () => {
       { classIds: ['E', '1'], wechselFaktor: 2 },
       { classIds: ['4', '5', '6', '7'], wechselFaktor: 3 },
     ])
+  })
+
+  it('liest Boote und den Klasse-4-Umschalter', () => {
+    const cfg = parseUrlConfig('?counts=1.0.0.0.0.0.0.0&boats=4.2&c4=1')
+    expect(cfg?.boats).toEqual({ klein: 4, gross: 2 })
+    expect(cfg?.class4Small).toBe(true)
+  })
+
+  it('Round-Trip: Boote und class4Small bleiben erhalten', () => {
+    const cfg = parseUrlConfig('?' + buildConfigQuery(state))
+    expect(cfg?.boats).toEqual({ klein: 3, gross: 2 })
+    expect(cfg?.class4Small).toBeUndefined() // false ⇒ nicht kodiert
   })
 
   it('übernimmt event, jahr und origin', () => {
@@ -118,6 +132,8 @@ describe('manuelle Spur-Anordnung (Layout) im Link', () => {
         ],
       },
     ],
+    boats: { klein: 2, gross: 2 },
+    class4Small: false,
   }
 
   it('kodiert die Anordnung inkl. Pause als Layout-Feld', () => {

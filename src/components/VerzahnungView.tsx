@@ -15,10 +15,11 @@ import {
 import { arrayMove } from '@dnd-kit/sortable'
 import { useStore } from '../state/store'
 import { CLASSES, CLASS_IDS, classColor, getClass } from '../lib/classes'
-import { classCounts, computeVerzahnung, itemDragId } from '../lib/verzahnung'
+import { classCounts, itemDragId } from '../lib/verzahnung'
 import { formatVerzahnungExport } from '../lib/exportText'
 import { buildConfigUrl } from '../lib/urlconfig'
-import type { AppState, ClassId, Parcours, TrackItem, WechselFaktor } from '../types'
+import { planEvent, type EventPlan, type ParcoursPlan } from '../lib/plan'
+import type { AppState, BoatConfig, ClassId, Parcours, Participant, TrackItem, WechselFaktor } from '../types'
 import { TrackContainer } from './TrackContainer'
 import { ClassChipPresentation } from './ClassChip'
 import { PauseChipPresentation } from './PauseChip'
@@ -69,6 +70,13 @@ export function VerzahnungView() {
 
   const currentSig = groupsSignature(state.parcoursList.map((p) => p.classIds))
 
+  // Boot-beschränkte Planung: die angezeigte Verzahnung hält den Bootbestand ein.
+  const eventPlan = useMemo(() => planEvent(state), [state])
+  const planById = useMemo(
+    () => new Map(eventPlan.plans.map((p) => [p.parcoursId, p])),
+    [eventPlan],
+  )
+
   return (
     <>
       <div className="panel">
@@ -112,16 +120,105 @@ export function VerzahnungView() {
         )}
       </div>
 
+      <BoatPanel state={state} plan={eventPlan} />
+
       <ExportPanel state={state} />
 
       {state.parcoursList.map((p) => (
-        <ParcoursCard key={p.id} parcours={p} />
+        <ParcoursCard key={p.id} parcours={p} plan={planById.get(p.id)!} />
       ))}
 
       <button className="btn" onClick={() => dispatch({ type: 'ADD_PARCOURS' })}>
         + Parcours hinzufügen
       </button>
     </>
+  )
+}
+
+/** „2 kleine Boote", „1 großes Boot" … */
+function boatWord(type: 'klein' | 'gross', n: number): string {
+  const base = type === 'klein' ? 'klein' : 'groß'
+  return n === 1 ? `${n} ${base}es Boot` : `${n} ${base}e Boote`
+}
+
+function clampBoats(v: string): number {
+  return Math.max(0, Math.min(99, parseInt(v, 10) || 0))
+}
+
+/**
+ * Boote & Bootbedarf oberhalb der Parcours. Einstellbare Bootzahlen, der
+ * Klasse-4-Umschalter und ein Hinweis, ob die Verzahnung fahrbar ist bzw.
+ * wie viele Zusatzboote die optimale Verzahnung ermöglichen würden.
+ */
+function BoatPanel({ state, plan }: { state: AppState; plan: EventPlan }) {
+  const { dispatch } = useStore()
+
+  const setBoats = (patch: Partial<BoatConfig>) =>
+    dispatch({ type: 'SET_BOATS', boats: { ...state.boats, ...patch } })
+
+  const missing: string[] = []
+  if (plan.extra.klein > 0) missing.push(boatWord('klein', plan.extra.klein))
+  if (plan.extra.gross > 0) missing.push(boatWord('gross', plan.extra.gross))
+  const short = plan.extra.klein > 0 || plan.extra.gross > 0
+
+  return (
+    <div className="panel">
+      <h2>Boote</h2>
+      <div className="boat-controls">
+        <div className="field" style={{ width: 130 }}>
+          <label>Kleine Boote (E–3)</label>
+          <input
+            className="input"
+            type="number"
+            min={0}
+            max={99}
+            value={state.boats.klein}
+            onChange={(e) => setBoats({ klein: clampBoats(e.target.value) })}
+          />
+        </div>
+        <div className="field" style={{ width: 130 }}>
+          <label>Große Boote (4–7)</label>
+          <input
+            className="input"
+            type="number"
+            min={0}
+            max={99}
+            value={state.boats.gross}
+            onChange={(e) => setBoats({ gross: clampBoats(e.target.value) })}
+          />
+        </div>
+        <label className="boat-check">
+          <input
+            type="checkbox"
+            checked={state.class4Small}
+            onChange={(e) => dispatch({ type: 'SET_CLASS4_SMALL', class4Small: e.target.checked })}
+          />
+          Klasse 4 fährt mit kleinem Boot
+        </label>
+      </div>
+
+      <div className={`boat-banner ${short ? 'warn' : 'ok'}`}>
+        {short ? (
+          <>
+            ⚠ Die Verzahnung ist auf den Bootbestand begrenzt. Angezeigt:{' '}
+            <b>
+              {plan.demand.klein}× klein · {plan.demand.gross}× groß
+            </b>{' '}
+            (vorhanden {state.boats.klein}/{state.boats.gross}). Mit <b>{missing.join(' und ')}</b>{' '}
+            zusätzlich wäre eine bessere Verzahnung möglich (optimal {plan.optimalDemand.klein}×
+            klein · {plan.optimalDemand.gross}× groß).
+          </>
+        ) : (
+          <>
+            ✓ Boote reichen für die optimale Verzahnung. Bedarf:{' '}
+            <b>
+              {plan.demand.klein}× klein · {plan.demand.gross}× groß
+            </b>{' '}
+            (vorhanden {state.boats.klein}/{state.boats.gross}).
+          </>
+        )}
+      </div>
+    </div>
   )
 }
 
@@ -178,7 +275,7 @@ function ExportPanel({ state }: { state: AppState }) {
   )
 }
 
-function ParcoursCard({ parcours }: { parcours: Parcours }) {
+function ParcoursCard({ parcours, plan }: { parcours: Parcours; plan: ParcoursPlan }) {
   const { state, dispatch } = useStore()
   const TRACK_PREFIX = `${parcours.id}::track::`
 
@@ -187,13 +284,14 @@ function ParcoursCard({ parcours }: { parcours: Parcours }) {
     [state.participants, parcours.classIds],
   )
   const counts = useMemo(() => classCounts(filtered), [filtered])
-  const verz = useMemo(() => computeVerzahnung(parcours, state.participants), [parcours, state.participants])
+  const verz = plan // boot-beschränkte Anordnung (tracks/sequence/manual)
+  const boatDemand = plan.demand
 
   const signature = JSON.stringify(verz.tracks)
   const [containers, setContainers] = useState<TrackItem[][]>(verz.tracks)
   const [activeItem, setActiveItem] = useState<TrackItem | null>(null)
 
-  // Bei Änderung von Klassen/Faktor/Startern/Pausen die Spuren neu übernehmen.
+  // Bei Änderung von Klassen/Faktor/Startern/Pausen/Booten die Spuren neu übernehmen.
   useEffect(() => {
     setContainers(verz.tracks)
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -362,7 +460,17 @@ function ParcoursCard({ parcours }: { parcours: Parcours }) {
             )
           })}
         </div>
-        <p className="note">{FACTOR_HINTS[parcours.wechselFaktor]}</p>
+        <p className="note">
+          {FACTOR_HINTS[parcours.wechselFaktor]} · Bootbedarf: {boatDemand.klein}× klein ·{' '}
+          {boatDemand.gross}× groß
+          {!plan.manual && plan.constrained && plan.effectiveTracks < parcours.wechselFaktor && (
+            <span style={{ color: 'var(--danger)' }}>
+              {' '}
+              · ⚠ wegen Booten auf {plan.effectiveTracks} Spur
+              {plan.effectiveTracks === 1 ? '' : 'en'} reduziert
+            </span>
+          )}
+        </p>
       </div>
 
       <div className="parcours-body">
@@ -406,12 +514,12 @@ function ParcoursCard({ parcours }: { parcours: Parcours }) {
               </DragOverlay>
             </DndContext>
           )}
-          <FlowPreview parcours={parcours} />
+          <FlowPreview sequence={verz.sequence} />
         </div>
 
         <div className="sequence-area">
           <div className="subhead">Verzahnte Startreihenfolge · {verz.sequence.length} Starter</div>
-          <SequenceTable parcoursId={parcours.id} />
+          <SequenceTable sequence={verz.sequence} originMode={state.originMode} />
         </div>
       </div>
     </div>
@@ -421,10 +529,7 @@ function ParcoursCard({ parcours }: { parcours: Parcours }) {
 const PREVIEW_LIMIT = 100
 const PREVIEW_EDGE = 50
 
-function FlowPreview({ parcours }: { parcours: Parcours }) {
-  const { state } = useStore()
-  const verz = computeVerzahnung(parcours, state.participants)
-  const seq = verz.sequence
+function FlowPreview({ sequence: seq }: { sequence: Participant[] }) {
   if (seq.length === 0) return null
 
   // Bis 100 alles zeigen; darüber die ersten 50 und die letzten 50 – der
@@ -454,12 +559,14 @@ function FlowPreview({ parcours }: { parcours: Parcours }) {
   )
 }
 
-function SequenceTable({ parcoursId }: { parcoursId: string }) {
-  const { state } = useStore()
-  const parcours = state.parcoursList.find((p) => p.id === parcoursId)!
-  const verz = computeVerzahnung(parcours, state.participants)
-
-  if (verz.sequence.length === 0) {
+function SequenceTable({
+  sequence,
+  originMode,
+}: {
+  sequence: Participant[]
+  originMode: AppState['originMode']
+}) {
+  if (sequence.length === 0) {
     return <div className="empty">Noch keine Starter auf diesem Parcours.</div>
   }
 
@@ -472,11 +579,11 @@ function SequenceTable({ parcoursId }: { parcoursId: string }) {
             <th style={{ width: 44 }}>Kl.</th>
             <th style={{ width: 56 }}>S-Nr.</th>
             <th>Name, Vorname</th>
-            <th>{state.originMode === 'bundesland' ? 'Bundesland' : 'Verein'}</th>
+            <th>{originMode === 'bundesland' ? 'Bundesland' : 'Verein'}</th>
           </tr>
         </thead>
         <tbody>
-          {verz.sequence.map((p, i) => {
+          {sequence.map((p, i) => {
             const def = getClass(p.klasse)
             return (
               <tr key={p.id}>
@@ -490,7 +597,7 @@ function SequenceTable({ parcoursId }: { parcoursId: string }) {
                 <td>
                   {p.nachname}, {p.vorname}
                 </td>
-                <td>{state.originMode === 'bundesland' ? p.bundesland : p.verein || p.bundesland}</td>
+                <td>{originMode === 'bundesland' ? p.bundesland : p.verein || p.bundesland}</td>
               </tr>
             )
           })}

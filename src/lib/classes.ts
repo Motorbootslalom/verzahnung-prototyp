@@ -1,4 +1,4 @@
-import type { ClassId } from '../types'
+import type { BoatType, ClassId } from '../types'
 
 export interface ClassDef {
   id: ClassId
@@ -36,6 +36,24 @@ export function getClass(id: ClassId): ClassDef {
 
 export function classColor(id: ClassId): string {
   return getClass(id).color
+}
+
+/** Klassen, die (normalerweise) mit einem kleinen Boot fahren. */
+const KLEIN_BOOT_CLASSES = new Set<ClassId>(['E', '1', '2', '3'])
+
+/**
+ * Boot-Typ einer Klasse. Klasse 4 fährt normalerweise groß, mit `class4Small`
+ * aber ausnahmsweise klein.
+ */
+export function boatTypeOf(id: ClassId, class4Small: boolean): BoatType {
+  if (KLEIN_BOOT_CLASSES.has(id)) return 'klein'
+  if (id === '4' && class4Small) return 'klein'
+  return 'gross'
+}
+
+export const BOAT_LABEL: Record<BoatType, string> = {
+  klein: 'kleines Boot',
+  gross: 'großes Boot',
 }
 
 /** Geburtsjahr-Bereich [von, bis] (beide inklusive) für eine Klasse im gegebenen Eventjahr. */

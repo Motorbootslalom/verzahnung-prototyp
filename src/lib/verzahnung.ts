@@ -172,10 +172,18 @@ type Step = { kind: 'starter'; p: Participant } | { kind: 'pause' }
  * verbraucht einen Takt der Spur, ohne einen Starter zu erzeugen – dadurch
  * setzt die nachfolgende Klasse dieser Spur später ein (Versatz, keine Leerzeile).
  */
-export function buildSequence(
+/** Ein ausgegebener Starter samt der Spur, aus der er stammt. */
+export interface SeqStep {
+  p: Participant
+  /** Index der Spur (0-basiert), aus der dieser Starter kommt. */
+  track: number
+}
+
+/** Wie {@link buildSequence}, liefert zusätzlich die Spur je Starter (für die Bootbedarf-Rechnung). */
+export function buildSequenceSteps(
   tracks: TrackItem[][],
   byClass: Map<ClassId, Participant[]>,
-): Participant[] {
+): SeqStep[] {
   const stepTracks: Step[][] = tracks.map((track) => {
     const steps: Step[] = []
     for (const item of track) {
@@ -195,7 +203,7 @@ export function buildSequence(
       0,
     )
 
-  const sequence: Participant[] = []
+  const sequence: SeqStep[] = []
   const n = stepTracks.length
   let idx = 0
 
@@ -212,11 +220,18 @@ export function buildSequence(
     const step = stepTracks[t][pos[t]]
     pos[t]++
     idx++
-    if (step.kind === 'starter') sequence.push(step.p)
+    if (step.kind === 'starter') sequence.push({ p: step.p, track: t })
     // Pause: nichts ausgeben, nur den Takt verbrauchen
   }
 
   return sequence
+}
+
+export function buildSequence(
+  tracks: TrackItem[][],
+  byClass: Map<ClassId, Participant[]>,
+): Participant[] {
+  return buildSequenceSteps(tracks, byClass).map((s) => s.p)
 }
 
 export interface VerzahnungResult {

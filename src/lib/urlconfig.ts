@@ -1,4 +1,4 @@
-import type { AppState, ClassId, OriginMode, TrackItem, WechselFaktor } from '../types'
+import type { AppState, BoatConfig, ClassId, OriginMode, TrackItem, WechselFaktor } from '../types'
 import { CLASS_IDS } from './classes'
 import { classCounts, computeVerzahnung } from './verzahnung'
 
@@ -20,6 +20,8 @@ import { classCounts, computeVerzahnung } from './verzahnung'
  *                          Klasse = ID, Pause = "q<Länge>".
  *            Beispiel: p=E1234567*2*3.E.1.2.6-4.5.7
  *                      (Faktor 2, Spur A: 3,E,1,2,6 · Spur B: 4,5,7)
+ *   boats  = vorhandene Boote "klein.gross", z. B. boats=4.2 (optional)
+ *   c4     = "1", wenn Klasse 4 mit kleinem Boot fährt (optional)
  *   event  = Veranstaltungsname (optional)
  *   jahr   = Veranstaltungsjahr (optional)
  *   origin = "verein" | "bundesland" (optional)
@@ -34,6 +36,8 @@ export interface UrlParcours {
 export interface UrlConfig {
   counts: Partial<Record<ClassId, number>>
   parcours: UrlParcours[]
+  boats?: BoatConfig
+  class4Small?: boolean
   eventName?: string
   eventJahr?: number
   originMode?: OriginMode
@@ -127,6 +131,20 @@ export function parseUrlConfig(search: string): UrlConfig | null {
 
   const config: UrlConfig = { counts, parcours }
 
+  const boatsRaw = params.get('boats')
+  if (boatsRaw) {
+    const [k, g] = boatsRaw.split('.')
+    const klein = parseInt(k ?? '', 10)
+    const gross = parseInt(g ?? '', 10)
+    if (Number.isFinite(klein) || Number.isFinite(gross)) {
+      config.boats = {
+        klein: Number.isFinite(klein) ? Math.max(0, klein) : 0,
+        gross: Number.isFinite(gross) ? Math.max(0, gross) : 0,
+      }
+    }
+  }
+  if (params.get('c4') === '1') config.class4Small = true
+
   const event = params.get('event')
   if (event) config.eventName = event
   const jahr = parseInt(params.get('jahr') ?? '', 10)
@@ -157,6 +175,8 @@ export function buildConfigQuery(state: AppState): string {
 
   const parts = [`counts=${countsStr}`]
   if (pStr) parts.push(`p=${pStr}`)
+  parts.push(`boats=${state.boats.klein}.${state.boats.gross}`)
+  if (state.class4Small) parts.push(`c4=1`)
   if (state.eventName) parts.push(`event=${encodeURIComponent(state.eventName)}`)
   parts.push(`jahr=${state.eventJahr}`)
   parts.push(`origin=${state.originMode}`)

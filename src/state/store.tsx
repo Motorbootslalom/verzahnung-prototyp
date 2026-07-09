@@ -1,6 +1,7 @@
 import { createContext, useContext, useEffect, useReducer, type ReactNode } from 'react'
 import type {
   AppState,
+  BoatConfig,
   ClassId,
   OriginMode,
   Parcours,
@@ -28,6 +29,8 @@ const emptyState: AppState = {
   originMode: 'verein',
   participants: [],
   parcoursList: defaultParcours(),
+  boats: { klein: 2, gross: 2 },
+  class4Small: false,
   initialized: false,
 }
 
@@ -40,9 +43,13 @@ export type Action =
       counts: Partial<Record<ClassId, number>>
       /** Optionale Parcours-Vorgabe (z. B. aus URL-Parametern); sonst Standard. */
       parcoursConfig?: { classIds: ClassId[]; wechselFaktor: WechselFaktor; tracks?: TrackItem[][] }[]
+      boats?: BoatConfig
+      class4Small?: boolean
     }
   | { type: 'SET_EVENT'; eventName: string; eventJahr: number }
   | { type: 'SET_ORIGIN_MODE'; originMode: OriginMode }
+  | { type: 'SET_BOATS'; boats: BoatConfig }
+  | { type: 'SET_CLASS4_SMALL'; class4Small: boolean }
   | { type: 'GENERATE'; klasse: ClassId; count: number }
   | { type: 'ADD_PARTICIPANT'; participant: Participant }
   | { type: 'UPDATE_PARTICIPANT'; id: string; patch: Partial<Participant> }
@@ -86,6 +93,8 @@ function reducer(state: AppState, action: Action): AppState {
         originMode: action.originMode,
         participants,
         parcoursList,
+        boats: action.boats ?? state.boats,
+        class4Small: action.class4Small ?? state.class4Small,
         initialized: true,
       }
     }
@@ -95,6 +104,12 @@ function reducer(state: AppState, action: Action): AppState {
 
     case 'SET_ORIGIN_MODE':
       return { ...state, originMode: action.originMode }
+
+    case 'SET_BOATS':
+      return { ...state, boats: action.boats }
+
+    case 'SET_CLASS4_SMALL':
+      return { ...state, class4Small: action.class4Small }
 
     case 'GENERATE': {
       const neu = generateParticipants(

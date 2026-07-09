@@ -1,5 +1,6 @@
 import type { AppState, Parcours, TrackItem } from '../types'
-import { analyzeSequence, classCounts, computeVerzahnung, presentClasses } from './verzahnung'
+import { analyzeSequence, classCounts, presentClasses } from './verzahnung'
+import { planEvent, type ParcoursPlan } from './plan'
 
 /** Ein Spur-Element als kurzes Textsymbol: Klasse = ID, Pause = "⏸n". */
 function itemToText(item: TrackItem): string {
@@ -21,24 +22,23 @@ function startNumbersByClass(parcours: Parcours, state: AppState): string[] {
   return lines
 }
 
-/** Menschlich lesbarer Export eines einzelnen Parcours (für die Optimierung durch Claude). */
-export function formatParcoursExport(parcours: Parcours, state: AppState): string {
-  const verz = computeVerzahnung(parcours, state.participants)
+/** Export eines Parcours aus seinem (boot-beschränkten) Plan. */
+function formatParcoursFromPlan(plan: ParcoursPlan, parcours: Parcours, state: AppState): string {
   const filtered = state.participants.filter((p) => parcours.classIds.includes(p.klasse))
   const counts = classCounts(filtered)
   const classes = presentClasses(parcours, filtered)
-  const analysis = analyzeSequence(verz.sequence)
+  const analysis = analyzeSequence(plan.sequence)
 
   const classLine = classes.map((c) => `${c}:${counts.get(c) ?? 0}`).join(', ')
 
-  const spurLines = verz.tracks.map((track, i) => {
+  const spurLines = plan.tracks.map((track, i) => {
     const label = `Spur ${String.fromCharCode(65 + i)}`
     const body = track.map(itemToText).join(' ') || '(leer)'
     const starter = track.reduce((s, it) => s + (it.kind === 'class' ? counts.get(it.klasse) ?? 0 : 0), 0)
     return `  ${label}: ${body}   → ${starter} Starter`
   })
 
-  const seqStr = verz.sequence.map((p) => p.klasse).join(' ')
+  const seqStr = plan.sequence.map((p) => p.klasse).join(' ')
 
   const diag =
     analysis.total === 0
@@ -49,29 +49,54 @@ export function formatParcoursExport(parcours: Parcours, state: AppState): strin
           `${analysis.trailingRun} Starter am Ende ohne Verzahnung` +
           (analysis.trailingKlasse ? ` (Klasse ${analysis.trailingKlasse})` : '')
 
+  const mode = plan.manual
+    ? 'manuell angepasst'
+    : plan.constrained
+      ? `automatisch · auf Boote begrenzt (${plan.effectiveTracks} Spur${plan.effectiveTracks === 1 ? '' : 'en'})`
+      : 'automatisch'
+
   return [
-    `## ${parcours.name} · Wechselfaktor ${parcours.wechselFaktor} · ${verz.manual ? 'manuell angepasst' : 'automatisch'}`,
+    `## ${parcours.name} · Wechselfaktor ${parcours.wechselFaktor} · ${mode}`,
     `Klassen (Starter): ${classLine || '(keine)'}  (Summe ${filtered.length})`,
     `Spuren (⏸n = Pause über n Takte):`,
     ...spurLines,
     `Startreihenfolge (Klassen): ${seqStr || '(leer)'}`,
     `Diagnose: ${diag}`,
+    `Bootbedarf: ${plan.demand.klein}× klein · ${plan.demand.gross}× groß`,
     `Startnummern je Klasse:`,
     ...startNumbersByClass(parcours, state),
   ].join('\n')
 }
 
+/** Menschlich lesbarer Export eines einzelnen Parcours (für die Optimierung durch Claude). */
+export function formatParcoursExport(parcours: Parcours, state: AppState): string {
+  const plan = planEvent(state).plans.find((p) => p.parcoursId === parcours.id)
+  if (!plan) return ''
+  return formatParcoursFromPlan(plan, parcours, state)
+}
+
 /** Gesamter Export über alle Parcours – als ein zusammenhängender Text zum Kopieren. */
 export function formatVerzahnungExport(state: AppState): string {
+  const plan = planEvent(state)
+  const boatLine =
+    `Boote: vorhanden ${state.boats.klein} klein / ${state.boats.gross} groß · ` +
+    `Bedarf ${plan.demand.klein} klein / ${plan.demand.gross} groß` +
+    (plan.extra.klein > 0 || plan.extra.gross > 0
+      ? ` · optimal ${plan.optimalDemand.klein}/${plan.optimalDemand.gross} (auf Boote begrenzt)`
+      : '') +
+    (state.class4Small ? ' · Klasse 4 fährt klein' : '')
+
   const header = [
     `# Verzahnung-Export · ${state.eventName} · ${state.eventJahr}`,
     `Herkunft: ${state.originMode === 'bundesland' ? 'Bundesländer' : 'Vereine'} · ${state.participants.length} Starter gesamt`,
+    boatLine,
     '',
     'Ziel: Reihenfolge/Spur-Aufteilung so optimieren, dass der End-Block ohne',
     'Verzahnung (letzte Starter derselben Klasse) möglichst kurz ist.',
     '',
   ].join('\n')
 
-  const bodies = state.parcoursList.map((p) => formatParcoursExport(p, state))
+  const byId = new Map(plan.plans.map((p) => [p.parcoursId, p]))
+  const bodies = state.parcoursList.map((p) => formatParcoursFromPlan(byId.get(p.id)!, p, state))
   return header + bodies.join('\n\n') + '\n'
 }

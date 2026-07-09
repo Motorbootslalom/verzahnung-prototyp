@@ -30,6 +30,8 @@ const sample: AppState = {
   initialized: true,
   participants: [],
   parcoursList: [],
+  boats: { klein: 2, gross: 2 },
+  class4Small: false,
 }
 
 describe('storage', () => {

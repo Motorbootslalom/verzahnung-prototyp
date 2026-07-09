@@ -27,6 +27,8 @@ export function App() {
       originMode: cfg.originMode ?? state.originMode,
       counts: cfg.counts,
       parcoursConfig: cfg.parcours.length > 0 ? cfg.parcours : undefined,
+      boats: cfg.boats,
+      class4Small: cfg.class4Small,
     })
     setTab('verzahnung')
     window.history.replaceState(null, '', window.location.pathname)

@@ -46,6 +46,8 @@ const state: AppState = {
   initialized: true,
   participants: [...make('3', 8), ...make('1', 3), ...make('2', 2)],
   parcoursList: [{ id: 'p', name: 'Parcours 1', classIds: ['1', '2', '3'], wechselFaktor: 2 }],
+  boats: { klein: 2, gross: 2 },
+  class4Small: false,
 }
 
 describe('formatParcoursExport', () => {

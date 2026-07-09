@@ -45,6 +45,8 @@ const seed = (tracks: unknown): AppState => ({
   initialized: true,
   participants: [...make('E', 3), ...make('7', 6)],
   parcoursList: [{ id: 'p1', name: 'P1', classIds: ['E', '7'], wechselFaktor: 2, tracks: tracks as never }],
+  boats: { klein: 2, gross: 2 },
+  class4Small: false,
 })
 
 describe('UI-Render (SSR-Smoke)', () => {

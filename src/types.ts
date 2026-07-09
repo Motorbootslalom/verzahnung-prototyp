@@ -4,6 +4,15 @@ export type OriginMode = 'verein' | 'bundesland'
 
 export type WechselFaktor = 1 | 2 | 3 | 4
 
+/** Boot-Typ: kleines Boot (Klassen E–3) oder großes Boot (Klassen 4–7). */
+export type BoatType = 'klein' | 'gross'
+
+/** Anzahl der vorhandenen Boote je Typ. */
+export interface BoatConfig {
+  klein: number
+  gross: number
+}
+
 export interface Participant {
   id: string
   startNr: string
@@ -53,6 +62,10 @@ export interface AppState {
   originMode: OriginMode
   participants: Participant[]
   parcoursList: Parcours[]
+  /** Vorhandene Boote je Typ (Ressourcenschranke für die Verzahnung). */
+  boats: BoatConfig
+  /** Wenn true, fährt Klasse 4 ausnahmsweise mit einem kleinen Boot. */
+  class4Small: boolean
   /** true sobald das initiale Setup abgeschlossen ist */
   initialized: boolean
 }

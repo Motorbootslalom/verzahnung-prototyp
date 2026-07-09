@@ -24,6 +24,13 @@ Alle Daten liegen ausschließlich **lokal im Browser** (localStorage) und überl
   Spur die angegebene Anzahl Starts aussetzen – die nachfolgende Klasse setzt entsprechend später ein
   (kein Leerstart / keine Leerzeile in der Startliste). So verhindert man z. B., dass eine Klasse
   direkt nach einer anderen startet, oder dass sich am Ende alles einer Klasse staut.
+- **Boote & Bootbedarf:** Klassen E–3 fahren mit **kleinem**, 4–7 mit **großem** Boot; Klasse 4 kann
+  per Umschalter ausnahmsweise klein fahren. Die vorhandenen Boote (klein/groß) sind einstellbar. Je
+  Spur wird ein Boot benötigt; ein Boot darf erst nach **1 Starter Puffer** die Spur wechseln. Die
+  automatische Verzahnung **hält den Bootbestand ein** – reichen die Boote nicht, wird die Anordnung
+  entsprechend reduziert (weniger parallele Spuren). Oberhalb der Parcours zeigt ein Hinweis den
+  aktuellen Bedarf und – falls dadurch nur eine schlechtere Verzahnung möglich ist – wie viele
+  Zusatzboote die optimale ermöglichen würden. Parcours laufen parallel, der Bedarf addiert sich.
 - **Export zur Optimierung:** In der Verzahnungs-Ansicht klappt eine Box („Für Optimierung
   exportieren“) die aktuelle Verzahnung als kompakten Text auf – Klassenverteilung, Spur-Aufteilung,
   Startreihenfolge, Startnummern je Klasse und eine Diagnose (Wechsel / un-verzahnter End-Block).
@@ -41,6 +48,8 @@ werden aus der Adresszeile entfernt (ein Reload würfelt also nicht erneut).
 | --------- | --------- | -------- |
 | `counts`  | Starter je Klasse in Reihenfolge `E,1,2,3,4,5,6,7`, punktgetrennt | `6.8.7.9.0.0.0.0` |
 | `p`       | Parcours (per `_` getrennt): `<Klassen>*<Faktor>` und optional `*<Layout>` | `E123*2*3.E.1-2` |
+| `boats`   | Vorhandene Boote `klein.gross` | `4.2` |
+| `c4`      | `1`, wenn Klasse 4 mit kleinem Boot fährt | `1` |
 | `event`   | Veranstaltungsname (optional) | `Testcup` |
 | `jahr`    | Veranstaltungsjahr (optional) | `2026` |
 | `origin`  | `verein` oder `bundesland` (optional) | `verein` |
