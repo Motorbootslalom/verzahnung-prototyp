@@ -48,6 +48,7 @@ const state: AppState = {
   parcoursList: [{ id: 'p', name: 'Parcours 1', classIds: ['1', '2', '3'], wechselFaktor: 2 }],
   boats: { klein: 2, gross: 2 },
   class4Small: false,
+  parallelInternational: true,
 }
 
 describe('formatParcoursExport', () => {

@@ -66,6 +66,11 @@ export interface AppState {
   boats: BoatConfig
   /** Wenn true, fährt Klasse 4 ausnahmsweise mit einem kleinen Boot. */
   class4Small: boolean
+  /**
+   * Parallel-Slalom im internationalen Modus: nur bis Klasse 5 (6/7 ignoriert),
+   * Klasse E heißt „Dolphin". Standard: true.
+   */
+  parallelInternational: boolean
   /** true sobald das initiale Setup abgeschlossen ist */
   initialized: boolean
 }

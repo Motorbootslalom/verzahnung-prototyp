@@ -3,9 +3,10 @@ import { useStore } from './state/store'
 import { SetupScreen } from './components/SetupScreen'
 import { ParticipantsView } from './components/ParticipantsView'
 import { VerzahnungView } from './components/VerzahnungView'
+import { ParallelView } from './components/ParallelView'
 import { parseUrlConfig } from './lib/urlconfig'
 
-type Tab = 'teilnehmer' | 'verzahnung'
+type Tab = 'teilnehmer' | 'verzahnung' | 'parallel'
 
 export function App() {
   const { state, dispatch } = useStore()
@@ -61,6 +62,12 @@ export function App() {
         >
           Verzahnung
         </button>
+        <button
+          className={`tab ${tab === 'parallel' ? 'active' : ''}`}
+          onClick={() => setTab('parallel')}
+        >
+          Parallel-Slalom
+        </button>
         <div style={{ flex: 1 }} />
         <button
           className="btn ghost sm"
@@ -72,7 +79,9 @@ export function App() {
         </button>
       </div>
 
-      {tab === 'teilnehmer' ? <ParticipantsView /> : <VerzahnungView />}
+      {tab === 'teilnehmer' && <ParticipantsView />}
+      {tab === 'verzahnung' && <VerzahnungView />}
+      {tab === 'parallel' && <ParallelView />}
     </div>
   )
 }

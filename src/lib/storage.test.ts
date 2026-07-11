@@ -32,6 +32,7 @@ const sample: AppState = {
   parcoursList: [],
   boats: { klein: 2, gross: 2 },
   class4Small: false,
+  parallelInternational: true,
 }
 
 describe('storage', () => {

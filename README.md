@@ -9,6 +9,9 @@ und in das neue Auswertungstool übernommen werden sollen.
 Es werden **zufällige Teilnehmer** generiert – keine echten personenbezogenen Daten.
 Alle Daten liegen ausschließlich **lokal im Browser** (localStorage) und überleben ein Reload.
 
+> **Fachliche Anforderungen** für das Entwicklerteam: siehe [LASTENHEFT.md](LASTENHEFT.md)
+> (Verzahnung beider Disziplinen, Parallel-Slalom-Regeln, Boote, Export).
+
 ## Funktionen
 
 - **Setup:** Anzahl Teilnehmer pro Klasse, Veranstaltungsjahr und Herkunfts-Modus wählen.
@@ -31,6 +34,18 @@ Alle Daten liegen ausschließlich **lokal im Browser** (localStorage) und überl
   entsprechend reduziert (weniger parallele Spuren). Oberhalb der Parcours zeigt ein Hinweis den
   aktuellen Bedarf und – falls dadurch nur eine schlechtere Verzahnung möglich ist – wie viele
   Zusatzboote die optimale ermöglichen würden. Parcours laufen parallel, der Bedarf addiert sich.
+- **Parallel-Slalom:** Eigener Tab für die zweite Disziplin. Zwei parallele Parcours (A/B); je
+  Lauf fahren zwei Starter **gleichen Bootstyps** gegeneinander auf Zeit. Die Klasse bestimmt nur
+  den Bootstyp und zählt fürs Ergebnis – ansonsten kann z. B. Klasse E gegen Klasse 3 fahren (beide
+  kleines Boot), nicht aber 2 gegen 4 (unterschiedliche Boote). Paare entstehen in Startreihenfolge
+  innerhalb eines Bootstyps; jedes Paar fährt **zweimal** (2. Lauf mit getauschten Parcours). Die
+  **Verzahnung wechselt den Bootstyp ab**: ein voller Block umfasst 4 Starter (klein-Paar Lauf 1,
+  groß-Paar Lauf 1, klein-Paar Lauf 2, groß-Paar Lauf 2) und ist durch eine **farbige Linie**
+  abgetrennt. Sobald ein Bootstyp aufgebraucht ist, ist keine Bootstyp-übergreifende Verzahnung mehr
+  möglich – die übrigen Paare laufen dann als **2er-Blöcke** (Paar komplett: Lauf 1, Lauf 2). Bei
+  **ungerader Anzahl** je Bootstyp wird ein **Dummy** (außer Wertung) eingesetzt. Eine Checkbox
+  schaltet den **internationalen Modus** (Standard an): Klassen 6–7 werden ignoriert und Klasse E
+  heißt **„Dolphin"**.
 - **Export zur Optimierung:** In der Verzahnungs-Ansicht klappt eine Box („Für Optimierung
   exportieren“) die aktuelle Verzahnung als kompakten Text auf – Klassenverteilung, Spur-Aufteilung,
   Startreihenfolge, Startnummern je Klasse und eine Diagnose (Wechsel / un-verzahnter End-Block).

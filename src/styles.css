@@ -821,3 +821,105 @@ table.starters tr:hover td {
   color: #991b1b;
   border: 1px solid #fecaca;
 }
+
+/* ---------- Parallel-Slalom ---------- */
+.parallel-controls {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin: 12px 0 4px;
+}
+
+.parallel-stats {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  align-items: center;
+  font-size: 13px;
+  color: var(--muted);
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid var(--border);
+}
+
+.pstat {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+}
+
+.pstat .dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  flex: none;
+}
+
+.parallel-sequence {
+  max-height: none;
+}
+
+.parallel-sequence td {
+  vertical-align: middle;
+}
+
+/* Trennlinie zwischen den 4er-Blöcken */
+.parallel-sequence tr.block-start td {
+  border-top: 3px solid var(--accent);
+}
+
+.slot {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+}
+
+.slot-main {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.25;
+}
+
+.slot-nr {
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.slot-name {
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.dummy-slot {
+  opacity: 0.75;
+}
+
+.dummy-badge {
+  background: #94a3b8;
+}
+
+.boat-tag {
+  display: inline-block;
+  font-size: 11px;
+  font-weight: 800;
+  padding: 2px 7px;
+  border-radius: 6px;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+}
+
+.boat-tag.klein {
+  background: #e0f2fe;
+  color: #0369a1;
+}
+
+.boat-tag.gross {
+  background: #ffedd5;
+  color: #9a3412;
+}
+
+.run-tag {
+  margin-left: 6px;
+  color: var(--muted);
+  font-weight: 700;
+}

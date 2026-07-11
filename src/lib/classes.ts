@@ -56,6 +56,21 @@ export const BOAT_LABEL: Record<BoatType, string> = {
   gross: 'großes Boot',
 }
 
+/**
+ * Anzeigename einer Klasse für den Parallel-Slalom. International heißt die
+ * Klasse E „Dolphin"; alle anderen Klassen behalten ihre Bezeichnung.
+ */
+export function parallelClassLabel(id: ClassId, international: boolean): string {
+  if (id === 'E') return international ? 'Dolphin' : 'E'
+  return id
+}
+
+/** Kurzes Badge-Kürzel: international „D" für Dolphin, sonst die Klassen-ID. */
+export function parallelClassBadge(id: ClassId, international: boolean): string {
+  if (id === 'E') return international ? 'D' : 'E'
+  return id
+}
+
 /** Geburtsjahr-Bereich [von, bis] (beide inklusive) für eine Klasse im gegebenen Eventjahr. */
 export function birthYearRange(id: ClassId, eventJahr: number): [number, number] {
   const c = getClass(id)

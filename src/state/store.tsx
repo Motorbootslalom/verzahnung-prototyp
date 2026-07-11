@@ -31,6 +31,7 @@ const emptyState: AppState = {
   parcoursList: defaultParcours(),
   boats: { klein: 2, gross: 2 },
   class4Small: false,
+  parallelInternational: true,
   initialized: false,
 }
 
@@ -50,6 +51,7 @@ export type Action =
   | { type: 'SET_ORIGIN_MODE'; originMode: OriginMode }
   | { type: 'SET_BOATS'; boats: BoatConfig }
   | { type: 'SET_CLASS4_SMALL'; class4Small: boolean }
+  | { type: 'SET_PARALLEL_INTERNATIONAL'; parallelInternational: boolean }
   | { type: 'GENERATE'; klasse: ClassId; count: number }
   | { type: 'ADD_PARTICIPANT'; participant: Participant }
   | { type: 'UPDATE_PARTICIPANT'; id: string; patch: Partial<Participant> }
@@ -110,6 +112,9 @@ function reducer(state: AppState, action: Action): AppState {
 
     case 'SET_CLASS4_SMALL':
       return { ...state, class4Small: action.class4Small }
+
+    case 'SET_PARALLEL_INTERNATIONAL':
+      return { ...state, parallelInternational: action.parallelInternational }
 
     case 'GENERATE': {
       const neu = generateParticipants(

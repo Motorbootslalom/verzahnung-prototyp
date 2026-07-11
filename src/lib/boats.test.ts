@@ -118,6 +118,7 @@ describe('eventBoatDemand & boatShortfall', () => {
     originMode: 'verein',
     initialized: true,
     class4Small: false,
+    parallelInternational: true,
     boats: { klein: 2, gross: 2 },
     participants: ps,
     parcoursList: [
