@@ -154,9 +154,17 @@ gleichzeitig gegeneinander auf Zeit.
 - **LH-31:** Für die Paarbildung ist **nur der Bootstyp** maßgeblich, **nicht die Klasse**. Innerhalb
   eines Bootstyps darf klassenübergreifend gepaart werden (z. B. **E gegen 3** – beide klein).
   Unterschiedliche Bootstypen dürfen **nicht** gepaart werden (z. B. **2 gegen 4** ist unzulässig).
-- **LH-32:** Innerhalb eines Bootstyps werden die Starter **in Startreihenfolge** (kanonische
-  Klassenreihenfolge E→7, darin nach Startnummer) genommen und **je zwei aufeinanderfolgende** zu
-  einem Paar zusammengefasst.
+- **LH-32:** Innerhalb eines Bootstyps werden die Starter **in Startreihenfolge** genommen und **je
+  zwei aufeinanderfolgende** zu einem Paar zusammengefasst.
+- **LH-32a (Reihenfolge umschaltbar):** Eine **Checkbox** bestimmt die Reihenfolge innerhalb jedes
+  Bootstyp-Pools:
+  - **nach Klasse** (Standard): kanonische Klassenreihenfolge E→7, darin nach Startnummer;
+  - **nach Startnummer:** nach der (klassischen) Startnummer – sinnvoll, wenn klassische
+    Startnummern genutzt werden und das Manövrieren mit einer anderen Klasse beginnt (dann startet
+    z. B. Klasse 3 statt Dolphin). Als Sortierschlüssel dient die klassische Startnummer (LH-43ff.);
+    fehlt sie, die klassenbasierte Startnummer.
+
+  Die **Bootstyp-Trennung bleibt** davon unberührt.
 - **LH-33 (Dummy):** Ist die Starterzahl eines Bootstyps **ungerade**, wird **ein Dummy** eingesetzt:
   eine Person außerhalb der Wertung, die im gleichen Bootstyp mitfährt und das letzte Paar auffüllt.
   Der Dummy ist in der Darstellung klar als „außer Wertung" zu kennzeichnen.

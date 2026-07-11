@@ -58,6 +58,13 @@ export interface ParallelOptions {
   international: boolean
   /** Klasse 4 fährt ausnahmsweise mit kleinem Boot (beeinflusst die Paarung). */
   class4Small: boolean
+  /**
+   * Reihenfolge innerhalb eines Bootstyp-Pools nach **Startnummer** statt nach
+   * Klasse. Als Sortierschlüssel dient dann die klassische Startnummer aus
+   * `running` (falls übergeben), sonst die klassenbasierte Startnummer.
+   * Standard: false (nach Klasse).
+   */
+  orderByStartNr?: boolean
 }
 
 /** Für den Parallel-Slalom berücksichtigte Klassen (international ohne 6/7). */
@@ -66,12 +73,36 @@ export function parallelActiveClasses(international: boolean): ClassId[] {
   return CLASS_IDS.filter((c) => !excluded.has(c))
 }
 
-/** Starter in Startreihenfolge: kanonische Klassenreihenfolge, dann Startnummer. */
-function orderStarters(list: Participant[]): Participant[] {
+/** Vergleich nach klassenbasierter Startnummer (numerisch, z. B. E01, 301). */
+function cmpStartNr(a: Participant, b: Participant): number {
+  return a.startNr.localeCompare(b.startNr, 'de', { numeric: true })
+}
+
+/**
+ * Starter in Startreihenfolge.
+ * - Standard (nach Klasse): kanonische Klassenreihenfolge, dann Startnummer.
+ * - `byStartNr`: nach klassischer Startnummer aus `running` (fehlt eine, sortiert
+ *   der Starter nach hinten und nach klassenbasierter Nummer), damit die
+ *   Parallel-Reihenfolge den vergebenen Startnummern folgt.
+ */
+function orderStarters(
+  list: Participant[],
+  byStartNr: boolean,
+  running?: Map<string, number>,
+): Participant[] {
+  if (!byStartNr) {
+    return [...list].sort((a, b) => {
+      const d = classOrderIndex(a.klasse) - classOrderIndex(b.klasse)
+      return d !== 0 ? d : cmpStartNr(a, b)
+    })
+  }
   return [...list].sort((a, b) => {
-    const d = classOrderIndex(a.klasse) - classOrderIndex(b.klasse)
-    if (d !== 0) return d
-    return a.startNr.localeCompare(b.startNr, 'de', { numeric: true })
+    const na = running?.get(a.id)
+    const nb = running?.get(b.id)
+    if (na != null && nb != null) return na - nb
+    if (na != null) return -1
+    if (nb != null) return 1
+    return cmpStartNr(a, b)
   })
 }
 
@@ -110,15 +141,24 @@ function toPairs(list: Participant[], boat: BoatType): { pairs: ParallelPair[]; 
  *   (Paar komplett: Lauf 1, Lauf 2) – zwei gleichartige Paare werden nicht
  *   miteinander verzahnt.
  */
-export function buildParallelPlan(participants: Participant[], opts: ParallelOptions): ParallelPlan {
+export function buildParallelPlan(
+  participants: Participant[],
+  opts: ParallelOptions,
+  running?: Map<string, number>,
+): ParallelPlan {
   const active = new Set(parallelActiveClasses(opts.international))
   const inField = participants.filter((p) => active.has(p.klasse))
+  const byStartNr = opts.orderByStartNr ?? false
 
   const kleinList = orderStarters(
     inField.filter((p) => boatTypeOf(p.klasse, opts.class4Small) === 'klein'),
+    byStartNr,
+    running,
   )
   const grossList = orderStarters(
     inField.filter((p) => boatTypeOf(p.klasse, opts.class4Small) === 'gross'),
+    byStartNr,
+    running,
   )
 
   const klein = toPairs(kleinList, 'klein')

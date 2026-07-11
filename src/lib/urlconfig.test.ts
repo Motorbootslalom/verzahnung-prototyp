@@ -29,6 +29,7 @@ const state: AppState = {
   boats: { klein: 3, gross: 2 },
   class4Small: false,
   parallelInternational: true,
+  parallelOrderByStartNr: false,
   runningNumbers: { enabled: false, source: 'manoever', start: 1, skipText: '' },
 }
 
@@ -137,6 +138,7 @@ describe('manuelle Spur-Anordnung (Layout) im Link', () => {
     boats: { klein: 2, gross: 2 },
     class4Small: false,
     parallelInternational: true,
+    parallelOrderByStartNr: false,
     runningNumbers: { enabled: false, source: 'manoever', start: 1, skipText: '' },
   }
 

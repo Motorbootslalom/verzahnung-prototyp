@@ -90,6 +90,11 @@ export interface AppState {
    * Klasse E heißt „Dolphin". Standard: true.
    */
   parallelInternational: boolean
+  /**
+   * Parallel-Slalom: Reihenfolge innerhalb der Bootstyp-Pools nach Startnummer
+   * (statt nach Klasse). Sinnvoll bei genutzten klassischen Startnummern.
+   */
+  parallelOrderByStartNr: boolean
   /** Klassische fortlaufende Startnummern (nach Verzahnung vergeben). */
   runningNumbers: RunningNumberConfig
   /** true sobald das initiale Setup abgeschlossen ist */

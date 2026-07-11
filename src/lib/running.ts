@@ -66,9 +66,13 @@ function manoeverOrderIds(state: AppState): string[] {
 
 /** Starter-IDs in Parallel-Slalom-Reihenfolge (je Heat A vor B); Dummys als null. */
 function parallelOrderIds(state: AppState): (string | null)[] {
+  // Ohne running-Map, um Zirkularität zu vermeiden: „nach Startnummer" fällt hier
+  // auf die klassenbasierte Nummer zurück (die vergebenen Nummern folgen dann
+  // dieser Reihenfolge, sodass Anzeige und Nummern übereinstimmen).
   const plan = buildParallelPlan(state.participants, {
     international: state.parallelInternational,
     class4Small: state.class4Small,
+    orderByStartNr: state.parallelOrderByStartNr,
   })
   return plan.heats.flatMap((h) => [
     h.a.kind === 'starter' ? h.a.p.id : null,

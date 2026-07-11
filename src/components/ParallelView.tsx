@@ -29,17 +29,20 @@ export function ParallelView() {
   const opts: ParallelOptions = {
     international: state.parallelInternational,
     class4Small: state.class4Small,
+    orderByStartNr: state.parallelOrderByStartNr,
   }
-  const plan = useMemo(
-    () => buildParallelPlan(state.participants, opts),
-    // opts hängt nur an diesen beiden Feldern
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [state.participants, opts.international, opts.class4Small],
-  )
 
-  // Kanonische klassische Startnummern (aus der Manövrier-Verzahnung) – dieselben
-  // Nummern wie in der Teilnehmer-Liste; hier wird nur angezeigt, nicht neu gezählt.
+  // Kanonische klassische Startnummern (einheitliche Quelle) – dieselben Nummern
+  // wie in der Teilnehmer-Liste; dienen zugleich als Sortierschlüssel „nach
+  // Startnummer".
   const runningMap = useMemo(() => canonicalRunningNumbers(state), [state])
+
+  const plan = useMemo(
+    () => buildParallelPlan(state.participants, opts, runningMap ?? undefined),
+    // opts hängt an diesen Feldern
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [state.participants, opts.international, opts.class4Small, opts.orderByStartNr, runningMap],
+  )
 
   const kleinLine =
     `${plan.kleinStarter} Starter` + (plan.kleinDummy ? ' + 1 Dummy' : '')
@@ -76,6 +79,19 @@ export function ParallelView() {
               onChange={(e) => dispatch({ type: 'SET_CLASS4_SMALL', class4Small: e.target.checked })}
             />
             Klasse&nbsp;4 fährt mit kleinem Boot
+          </label>
+          <label
+            className="boat-check"
+            title="Sortiert innerhalb jedes Bootstyps nach (klassischer) Startnummer statt nach Klasse – z. B. wenn das Manövrieren mit Klasse 3 beginnt."
+          >
+            <input
+              type="checkbox"
+              checked={state.parallelOrderByStartNr}
+              onChange={(e) =>
+                dispatch({ type: 'SET_PARALLEL_ORDER_BY_STARTNR', value: e.target.checked })
+              }
+            />
+            Reihenfolge nach Startnummer (statt Klasse)
           </label>
         </div>
 

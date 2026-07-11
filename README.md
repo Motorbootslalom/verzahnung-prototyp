@@ -55,6 +55,10 @@ Alle Daten liegen ausschließlich **lokal im Browser** (localStorage) und überl
   Ist die Nummerierung aktiv, wird sie als **primäre** Startnummer angezeigt (die klassenbasierte
   `E01`/`312` erscheint klein darunter). Dummys erhalten keine Nummer; die Nummern stehen auch im
   Text-Export.
+- **Parallel-Slalom – Reihenfolge nach Startnummer:** Eine Checkbox schaltet die Sortierung innerhalb
+  jedes Bootstyp-Pools von **nach Klasse** (Standard: Dolphin zuerst) auf **nach Startnummer** um –
+  sinnvoll, wenn klassische Startnummern genutzt werden und das Manövrieren mit einer anderen Klasse
+  beginnt (dann startet z. B. Klasse 3 zuerst). Die Bootstyp-Trennung bleibt unverändert.
 - **Export zur Optimierung:** In der Verzahnungs-Ansicht klappt eine Box („Für Optimierung
   exportieren“) die aktuelle Verzahnung als kompakten Text auf – Klassenverteilung, Spur-Aufteilung,
   Startreihenfolge, Startnummern je Klasse und eine Diagnose (Wechsel / un-verzahnter End-Block).

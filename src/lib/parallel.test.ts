@@ -98,6 +98,24 @@ describe('buildParallelPlan – Grundmuster aus der Aufgabenstellung', () => {
     expect(plan.heats.find((h) => h.pos === 6)!.blockStart).toBe(false)
   })
 
+  it('Reihenfolge nach Startnummer sortiert den Pool nach klassischer Nummer (statt Klasse)', () => {
+    // Feld nur klein: Klasse E und Klasse 3. Standard (nach Klasse) → Dolphin zuerst.
+    const ps = [...make('E', 2), ...make('3', 2)]
+    expect(rows(buildParallelPlan(ps, OPTS).heats)[0]).toBe('E01|E02')
+
+    // Manövrieren hat Klasse 3 zuerst gesetzt (Bibs 1,2), Dolphin danach (3,4).
+    const running = new Map([
+      ['3-1', 1],
+      ['3-2', 2],
+      ['E-1', 3],
+      ['E-2', 4],
+    ])
+    const heats = buildParallelPlan(ps, { ...OPTS, orderByStartNr: true }, running).heats
+    // Jetzt startet Klasse 3 (301) statt Dolphin, Bootstyp-Trennung bleibt.
+    expect(rows(heats)[0]).toBe('301|302')
+    expect(heats.every((h) => h.boat === 'klein')).toBe(true)
+  })
+
   it('nur ein Bootstyp im Feld → ausschließlich 2er-Blöcke', () => {
     const plan = buildParallelPlan(make('E', 4), OPTS)
     expect(rows(plan.heats)).toEqual(['E01|E02', 'E02|E01', 'E03|E04', 'E04|E03'])

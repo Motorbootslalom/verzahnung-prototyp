@@ -31,6 +31,7 @@ function stateWith(runningPatch: Partial<AppState['runningNumbers']>): AppState 
     boats: { klein: 9, gross: 9 },
     class4Small: false,
     parallelInternational: true,
+    parallelOrderByStartNr: false,
     runningNumbers: { enabled: true, source: 'manoever', start: 1, skipText: '', ...runningPatch },
     initialized: true,
   }
