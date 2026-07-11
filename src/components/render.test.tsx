@@ -49,6 +49,7 @@ const seed = (tracks: unknown): AppState => ({
   boats: { klein: 2, gross: 2 },
   class4Small: false,
   parallelInternational: true,
+  runningNumbers: { enabled: false, source: 'manoever', start: 1, skipText: '' },
 })
 
 describe('UI-Render (SSR-Smoke)', () => {
@@ -77,6 +78,20 @@ describe('UI-Render (SSR-Smoke)', () => {
     expect(badges).toBe('E,E,E,7,7,7,7,7,7')
   })
 
+  it('klassische Startnummern: Spalte + fortlaufende Nummern in Verzahnungs-Reihenfolge', () => {
+    const s = seed([
+      [{ kind: 'class', klasse: 'E' }],
+      [{ kind: 'pause', id: 'pp', length: 3 }, { kind: 'class', klasse: '7' }],
+    ])
+    s.runningNumbers = { enabled: true, source: 'manoever', start: 1, skipText: '' }
+    stubStorage({ 'verzahnung-prototyp:v1': JSON.stringify(s) })
+    const html = renderToStaticMarkup(createElement(StoreProvider, null, createElement(VerzahnungView)))
+    expect(html).toContain('Klassische Startnummern')
+    // Klassische Nummer wird primär angezeigt (startnr-main) in Verzahnungs-Reihenfolge.
+    const nums = [...html.matchAll(/class="startnr-main">(\d+)</g)].map((m) => m[1])
+    expect(nums).toEqual(['1', '2', '3', '4', '5', '6', '7', '8', '9'])
+  })
+
   it('ParallelView rendert Läufe, Bootstyp-Wechsel und Block-Trennung', () => {
     const parallelState: AppState = {
       eventName: 'Test',
@@ -88,6 +103,7 @@ describe('UI-Render (SSR-Smoke)', () => {
       boats: { klein: 2, gross: 2 },
       class4Small: false,
       parallelInternational: true,
+      runningNumbers: { enabled: false, source: 'manoever', start: 1, skipText: '' },
     }
     stubStorage({ 'verzahnung-prototyp:v1': JSON.stringify(parallelState) })
     const html = renderToStaticMarkup(createElement(StoreProvider, null, createElement(ParallelView)))

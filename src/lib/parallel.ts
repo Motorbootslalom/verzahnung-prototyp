@@ -184,22 +184,30 @@ export function formatParallelExport(
   opts: ParallelOptions,
   eventName: string,
   eventJahr: number,
+  running?: Map<string, number> | null,
 ): string {
   const dummyNote = (label: string, on: boolean) => (on ? ` (inkl. 1 Dummy ${label})` : '')
+  // Startplatz inkl. optionaler klassischer Nummer, z. B. "3:E01".
+  const slotText = (slot: ParallelSlot) => {
+    const base = slotShort(slot)
+    if (!running || slot.kind !== 'starter') return base
+    const n = running.get(slot.p.id)
+    return n === undefined ? base : `${n}:${base}`
+  }
   const lines: string[] = [
     `# Parallel-Slalom · ${eventName} · ${eventJahr}`,
     opts.international ? 'Modus: international (bis Klasse 5, E = Dolphin)' : 'Modus: national (alle Klassen)',
     `Kleine Boote: ${plan.kleinStarter} Starter${dummyNote('klein', plan.kleinDummy)} · ` +
       `Große Boote: ${plan.grossStarter} Starter${dummyNote('groß', plan.grossDummy)}`,
     `${plan.heats.length} Läufe · ${plan.pairs} Paare · ${plan.blocks} Blöcke`,
-    '',
-    '#  | Boot  | Parcours A → B',
   ]
+  if (running) lines.push('Klassische Startnummer als „Nr:S-Nr" (z. B. 3:E01).')
+  lines.push('', '#  | Boot  | Parcours A → B')
   for (const h of plan.heats) {
     if (h.blockStart && h.pos > 1) lines.push('   ┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈')
     const kl = h.boat === 'klein' ? 'klein' : 'groß '
     lines.push(
-      `${String(h.pos).padStart(2, ' ')} | ${kl} | ${slotShort(h.a)}  ↔  ${slotShort(h.b)}` +
+      `${String(h.pos).padStart(2, ' ')} | ${kl} | ${slotText(h.a)}  ↔  ${slotText(h.b)}` +
         (h.run === 2 ? '  (Tausch)' : ''),
     )
   }

@@ -46,6 +46,15 @@ Alle Daten liegen ausschließlich **lokal im Browser** (localStorage) und überl
   **ungerader Anzahl** je Bootstyp wird ein **Dummy** (außer Wertung) eingesetzt. Eine Checkbox
   schaltet den **internationalen Modus** (Standard an): Klassen 6–7 werden ignoriert und Klasse E
   heißt **„Dolphin"**.
+- **Klassische Startnummern:** Per Button erhält jeder Starter eine fortlaufende Nummer
+  (`1, 2, 3, …`). Die maßgebliche Reihenfolge ist **umschaltbar** – **Manövrieren** (Standard,
+  fortlaufend über alle Parcours) oder **Parallel-Slalom**; diese **eine** Nummer gilt **einheitlich**
+  in der Teilnehmer-Liste und in **beiden** Disziplinen (die jeweils andere Ansicht zeigt sie nur an,
+  zählt nicht eigenständig). Der **Startwert** ist
+  einstellbar, und über eine Liste lassen sich **fehlende Nummern überspringen** (z. B. `7, 13, 20`).
+  Ist die Nummerierung aktiv, wird sie als **primäre** Startnummer angezeigt (die klassenbasierte
+  `E01`/`312` erscheint klein darunter). Dummys erhalten keine Nummer; die Nummern stehen auch im
+  Text-Export.
 - **Export zur Optimierung:** In der Verzahnungs-Ansicht klappt eine Box („Für Optimierung
   exportieren“) die aktuelle Verzahnung als kompakten Text auf – Klassenverteilung, Spur-Aufteilung,
   Startreihenfolge, Startnummern je Klasse und eine Diagnose (Wechsel / un-verzahnter End-Block).

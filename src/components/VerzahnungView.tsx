@@ -19,8 +19,11 @@ import { classCounts, itemDragId } from '../lib/verzahnung'
 import { formatVerzahnungExport } from '../lib/exportText'
 import { buildConfigUrl } from '../lib/urlconfig'
 import { planEvent, type EventPlan, type ParcoursPlan } from '../lib/plan'
+import { canonicalRunningNumbers } from '../lib/running'
 import type { AppState, BoatConfig, ClassId, Parcours, Participant, TrackItem, WechselFaktor } from '../types'
 import { TrackContainer } from './TrackContainer'
+import { RunningNumberControls } from './RunningNumberControls'
+import { StartNr } from './StartNr'
 import { ClassChipPresentation } from './ClassChip'
 import { PauseChipPresentation } from './PauseChip'
 
@@ -77,6 +80,9 @@ export function VerzahnungView() {
     [eventPlan],
   )
 
+  // Kanonische klassische Startnummern (einheitlich für alle Ansichten).
+  const runningMap = useMemo(() => canonicalRunningNumbers(state), [state])
+
   return (
     <>
       <div className="panel">
@@ -124,8 +130,10 @@ export function VerzahnungView() {
 
       <ExportPanel state={state} />
 
+      <RunningNumberControls />
+
       {state.parcoursList.map((p) => (
-        <ParcoursCard key={p.id} parcours={p} plan={planById.get(p.id)!} />
+        <ParcoursCard key={p.id} parcours={p} plan={planById.get(p.id)!} running={runningMap} />
       ))}
 
       <button className="btn" onClick={() => dispatch({ type: 'ADD_PARCOURS' })}>
@@ -275,7 +283,15 @@ function ExportPanel({ state }: { state: AppState }) {
   )
 }
 
-function ParcoursCard({ parcours, plan }: { parcours: Parcours; plan: ParcoursPlan }) {
+function ParcoursCard({
+  parcours,
+  plan,
+  running,
+}: {
+  parcours: Parcours
+  plan: ParcoursPlan
+  running: Map<string, number> | null
+}) {
   const { state, dispatch } = useStore()
   const TRACK_PREFIX = `${parcours.id}::track::`
 
@@ -519,7 +535,7 @@ function ParcoursCard({ parcours, plan }: { parcours: Parcours; plan: ParcoursPl
 
         <div className="sequence-area">
           <div className="subhead">Verzahnte Startreihenfolge · {verz.sequence.length} Starter</div>
-          <SequenceTable sequence={verz.sequence} originMode={state.originMode} />
+          <SequenceTable sequence={verz.sequence} originMode={state.originMode} running={running} />
         </div>
       </div>
     </div>
@@ -562,9 +578,11 @@ function FlowPreview({ sequence: seq }: { sequence: Participant[] }) {
 function SequenceTable({
   sequence,
   originMode,
+  running,
 }: {
   sequence: Participant[]
   originMode: AppState['originMode']
+  running: Map<string, number> | null
 }) {
   if (sequence.length === 0) {
     return <div className="empty">Noch keine Starter auf diesem Parcours.</div>
@@ -577,7 +595,7 @@ function SequenceTable({
           <tr>
             <th className="pos">#</th>
             <th style={{ width: 44 }}>Kl.</th>
-            <th style={{ width: 56 }}>S-Nr.</th>
+            <th style={{ width: 64 }}>{running ? 'Start-Nr.' : 'S-Nr.'}</th>
             <th>Name, Vorname</th>
             <th>{originMode === 'bundesland' ? 'Bundesland' : 'Verein'}</th>
           </tr>
@@ -593,7 +611,9 @@ function SequenceTable({
                     {p.klasse}
                   </span>
                 </td>
-                <td className="num">{p.startNr}</td>
+                <td className="num">
+                  <StartNr startNr={p.startNr} runNr={running?.get(p.id)} />
+                </td>
                 <td>
                   {p.nachname}, {p.vorname}
                 </td>

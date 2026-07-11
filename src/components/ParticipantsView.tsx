@@ -1,6 +1,9 @@
 import { useMemo, useState } from 'react'
 import { useStore } from '../state/store'
 import { CLASSES, ageHint, birthYearRange, getClass } from '../lib/classes'
+import { canonicalRunningNumbers } from '../lib/running'
+import { RunningNumberControls } from './RunningNumberControls'
+import { StartNr } from './StartNr'
 import type { ClassId, Participant } from '../types'
 
 function formatDate(iso: string): string {
@@ -30,9 +33,14 @@ export function ParticipantsView() {
     })
   }
 
+  // Kanonische klassische Startnummern (aus der Manövrier-Verzahnung), damit die
+  // Teilnehmer-Liste dieselben Nummern zeigt wie die Verzahnungs-Ansichten.
+  const running = useMemo(() => canonicalRunningNumbers(state), [state])
+
   return (
     <>
       <SettingsPanel />
+      <RunningNumberControls />
       <div className="panel">
         <h2>Teilnehmer verwalten</h2>
         <p className="hint">
@@ -44,6 +52,7 @@ export function ParticipantsView() {
             key={c.id}
             classId={c.id}
             starters={byClass.get(c.id)!}
+            running={running}
             open={expanded.has(c.id)}
             onToggle={() => toggle(c.id)}
             onGenerate={(count) => dispatch({ type: 'GENERATE', klasse: c.id, count })}
@@ -119,6 +128,7 @@ function SettingsPanel() {
 interface ClassSectionProps {
   classId: ClassId
   starters: Participant[]
+  running: Map<string, number> | null
   open: boolean
   onToggle: () => void
   onGenerate: (count: number) => void
@@ -130,6 +140,7 @@ interface ClassSectionProps {
 function ClassSection({
   classId,
   starters,
+  running,
   open,
   onToggle,
   onGenerate,
@@ -195,7 +206,7 @@ function ClassSection({
             <table className="starters">
               <thead>
                 <tr>
-                  <th style={{ width: 60 }}>S-Nr.</th>
+                  <th style={{ width: 64 }}>{running ? 'Start-Nr.' : 'S-Nr.'}</th>
                   <th>Name</th>
                   <th>Vorname</th>
                   <th>{state.originMode === 'bundesland' ? 'Bundesland' : 'Verein'}</th>
@@ -206,7 +217,9 @@ function ClassSection({
               <tbody>
                 {starters.map((p) => (
                   <tr key={p.id}>
-                    <td className="num">{p.startNr}</td>
+                    <td className="num">
+                      <StartNr startNr={p.startNr} runNr={running?.get(p.id)} />
+                    </td>
                     <td>{p.nachname}</td>
                     <td>{p.vorname}</td>
                     <td>{state.originMode === 'bundesland' ? p.bundesland : p.verein || p.bundesland}</td>

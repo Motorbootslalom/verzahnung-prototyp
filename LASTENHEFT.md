@@ -7,7 +7,7 @@
 **Referenz-Umsetzung:** Der in diesem Repository liegende interaktive Prototyp bildet die
 Anforderungen bereits funktionsfähig ab und dient dem Entwicklerteam als lebende Spezifikation
 („so soll es sich verhalten"). Bei Widersprüchen zwischen Text und Prototyp gilt der Text; offene
-Punkte sind in Kapitel 9 gesammelt.
+Punkte sind in Kapitel 10 gesammelt.
 
 ---
 
@@ -205,7 +205,7 @@ gleichzeitig gegeneinander auf Zeit.
 
 - **LH-37 (nur ein Bootstyp im Feld):** Sind ausschließlich Starter eines Bootstyps vorhanden, gibt es
   keine Bootstyp-übergreifende Verzahnung; das gesamte Feld läuft in **2er-Blöcken** (siehe LH-36).
-  *(Offener Punkt – siehe 9.1.)*
+  *(Offener Punkt – siehe 10.1.)*
 
 ### 6.4 Darstellung Parallel-Slalom
 
@@ -228,25 +228,57 @@ gleichzeitig gegeneinander auf Zeit.
 
 ---
 
-## 7. Nicht-funktionale Anforderungen
+## 7. Klassische Startnummern (beide Disziplinen)
 
-- **LH-50 (Nachvollziehbarkeit):** Jede erzeugte Reihenfolge muss ohne Fachwissen nachvollziehbar
+Neben den **klassenbasierten** Startnummern (`E01`, `312`, `405` …) gibt es **klassische**,
+fortlaufende Startnummern (`1, 2, 3, …`), die den Startern **nach** der Verzahnung zugewiesen werden.
+Sie entsprechen z. B. den physischen Nummernschildern in Startreihenfolge.
+
+- **LH-43 (eine Nummer je Starter, überall gleich):** Jeder Starter erhält **genau eine** klassische
+  Startnummer. Sie ist in der **Teilnehmer-Liste** und in **beiden** Disziplinen **identisch** – es
+  wird nicht je Ansicht eigenständig neu gezählt.
+- **LH-44 (Quelle umschaltbar, einheitlich):** Maßgeblich für die Reihenfolge der Vergabe ist eine
+  **umschaltbare** Verzahnung – **Manövrieren** (Standard, fortlaufend über alle Parcours) oder
+  **Parallel-Slalom**. Die gewählte Quelle gilt einheitlich; die jeweils andere Ansicht und die
+  Teilnehmer-Liste **zeigen** dieselbe Nummer nur an (zählen nicht eigenständig). Ein Starter, der in
+  der gewählten Quelle nicht vorkommt (z. B. Klasse 6/7 bei Parallel-Slalom international), erhält
+  keine Nummer (siehe LH-49).
+- **LH-45 (fortlaufend über alle Parcours):** Beim Manövrieren wird über **alle Parcours hinweg
+  durchgehend** nummeriert (Parcours in ihrer Reihenfolge; Parcours 2 setzt die Serie von Parcours 1
+  fort), **nicht** je Parcours neu.
+- **LH-46 (Startwert):** Der **Startwert** der Nummerierung ist einstellbar (Standard 1).
+- **LH-47 (fehlende Nummern überspringen):** Über eine Liste konkreter Nummern lassen sich
+  **fehlende Startnummern auslassen** (z. B. „7, 13, 20"): Der Zähler überspringt genau diese
+  Nummern (fehlt 7, folgt auf 6 die 8).
+- **LH-48 (Anzeige ersetzt die klassenbasierte Nummer):** Ist die klassische Nummerierung aktiv, wird
+  die klassische Nummer als **primäre** Startnummer angezeigt (Teilnehmer-Liste und beide
+  Disziplinen); die klassenbasierte Nummer (`E01` …) erscheint klein/sekundär. Sie geht nicht
+  verloren.
+- **LH-49 (Starter ohne Nummer):** Starter, die in der maßgeblichen Verzahnung nicht vorkommen (z. B.
+  Klasse ohne Parcours), erhalten **keine** klassische Nummer; dort bleibt die klassenbasierte Nummer
+  sichtbar. Dummys (Parallel-Slalom) erhalten **keine** klassische Nummer.
+- **LH-50 (Export):** Die klassische Nummer wird in den Text-Exporten beider Disziplinen mit
+  ausgegeben.
+
+## 8. Nicht-funktionale Anforderungen
+
+- **LH-51 (Nachvollziehbarkeit):** Jede erzeugte Reihenfolge muss ohne Fachwissen nachvollziehbar
   dargestellt sein (klare Kennzeichnung von Klasse, Bootstyp, Parcours/Spur, Block, Dummy).
-- **LH-51 (Robustheit):** Randfälle dürfen nicht zu Fehlern führen: leere Klassen, nur ein Bootstyp,
+- **LH-52 (Robustheit):** Randfälle dürfen nicht zu Fehlern führen: leere Klassen, nur ein Bootstyp,
   ungerade Anzahlen (Dummy), Klassen ohne Parcours, sehr große Felder.
-- **LH-52 (Determinismus):** Bei gleicher Eingabe/Konfiguration muss dieselbe Startliste entstehen.
-- **LH-53 (Persistenz):** Eingaben und Konfiguration bleiben über einen Neustart erhalten
+- **LH-53 (Determinismus):** Bei gleicher Eingabe/Konfiguration muss dieselbe Startliste entstehen.
+- **LH-54 (Persistenz):** Eingaben und Konfiguration bleiben über einen Neustart erhalten
   (im Prototyp lokal im Browser).
-- **LH-54 (Datenschutz):** Der öffentliche Prototyp verwendet ausschließlich **zufällige**
+- **LH-55 (Datenschutz):** Der öffentliche Prototyp verwendet ausschließlich **zufällige**
   Testdaten; keine echten personenbezogenen Daten. Das Produktivsystem behandelt Meldedaten
   entsprechend Datenschutz.
-- **LH-55 (Testbarkeit):** Die Fachregeln (Altersberechnung, Verzahnung Manövrieren inkl. Pausen und
+- **LH-56 (Testbarkeit):** Die Fachregeln (Altersberechnung, Verzahnung Manövrieren inkl. Pausen und
   Bootschranke, Parallel-Slalom inkl. Paarbildung/Dummy/2er-Rückfall/internationaler Modus) sind
   automatisiert testabgedeckt.
 
 ---
 
-## 8. Abnahmekriterien (Auszug)
+## 9. Abnahmekriterien (Auszug)
 
 - **AK-1:** Das E01/E02 + 401/402-Beispiel erzeugt exakt die Reihenfolge aus LH-35.
 - **AK-2:** Nach Aufbrauchen eines Bootstyps entstehen 2er-Blöcke gemäß LH-36 (Paar komplett vor dem
@@ -256,12 +288,16 @@ gleichzeitig gegeneinander auf Zeit.
 - **AK-5:** Jeder Starter fährt im Parallel-Slalom genau zweimal – je einmal auf A und auf B.
 - **AK-6:** Beim Manövrieren hält die Auto-Verzahnung den eingestellten Bootbestand ein und weist
   Bedarf bzw. fehlende Zusatzboote korrekt aus.
+- **AK-7:** Die klassische Startnummer eines Starters ist in Teilnehmer-Liste, Manövrieren und
+  Parallel-Slalom **identisch** (Quelle: Manövrier-Verzahnung, fortlaufend über alle Parcours),
+  überspringt die angegebenen fehlenden Nummern, ersetzt in der Anzeige die klassenbasierte Nummer
+  und wird für Dummys nicht vergeben.
 
 ---
 
-## 9. Offene Punkte / Ausblick
+## 10. Offene Punkte / Ausblick
 
-### 9.1 Zu klären
+### 10.1 Zu klären
 
 - **OP-1 (Parallel-Slalom, nur ein Bootstyp / Rest gleicher Boote):** Aktuell laufen gleichartige
   Restpaare als 2er-Blöcke ohne Verzahnung (LH-36/37). Zu bestätigen ist, ob in reinen
@@ -272,7 +308,7 @@ gleichzeitig gegeneinander auf Zeit.
 - **OP-3 (Dummy-Zuweisung):** Woher stammt der Dummy konkret (fester Helfer, ausgeloste Person) und
   wie wird er in Ergebnislisten geführt?
 
-### 9.2 Ausblick / spätere Ausbaustufen
+### 10.2 Ausblick / spätere Ausbaustufen
 
 - **AB-1:** Integration in das **Auswertungstool** (Übernahme der Startliste als Eingangsgröße für
   Zeitmessung und Wertung).

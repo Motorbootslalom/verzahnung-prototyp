@@ -6,6 +6,7 @@ import type {
   OriginMode,
   Parcours,
   Participant,
+  RunningNumberConfig,
   TrackItem,
   WechselFaktor,
 } from '../types'
@@ -32,6 +33,7 @@ const emptyState: AppState = {
   boats: { klein: 2, gross: 2 },
   class4Small: false,
   parallelInternational: true,
+  runningNumbers: { enabled: false, source: 'manoever', start: 1, skipText: '' },
   initialized: false,
 }
 
@@ -52,6 +54,7 @@ export type Action =
   | { type: 'SET_BOATS'; boats: BoatConfig }
   | { type: 'SET_CLASS4_SMALL'; class4Small: boolean }
   | { type: 'SET_PARALLEL_INTERNATIONAL'; parallelInternational: boolean }
+  | { type: 'SET_RUNNING_NUMBERS'; patch: Partial<RunningNumberConfig> }
   | { type: 'GENERATE'; klasse: ClassId; count: number }
   | { type: 'ADD_PARTICIPANT'; participant: Participant }
   | { type: 'UPDATE_PARTICIPANT'; id: string; patch: Partial<Participant> }
@@ -115,6 +118,9 @@ function reducer(state: AppState, action: Action): AppState {
 
     case 'SET_PARALLEL_INTERNATIONAL':
       return { ...state, parallelInternational: action.parallelInternational }
+
+    case 'SET_RUNNING_NUMBERS':
+      return { ...state, runningNumbers: { ...state.runningNumbers, ...action.patch } }
 
     case 'GENERATE': {
       const neu = generateParticipants(

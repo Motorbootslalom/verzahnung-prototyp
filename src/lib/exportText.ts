@@ -1,6 +1,7 @@
 import type { AppState, Parcours, TrackItem } from '../types'
 import { analyzeSequence, classCounts, presentClasses } from './verzahnung'
 import { planEvent, type ParcoursPlan } from './plan'
+import { canonicalRunningNumbers } from './running'
 
 /** Ein Spur-Element als kurzes Textsymbol: Klasse = ID, Pause = "⏸n". */
 function itemToText(item: TrackItem): string {
@@ -98,5 +99,17 @@ export function formatVerzahnungExport(state: AppState): string {
 
   const byId = new Map(plan.plans.map((p) => [p.parcoursId, p]))
   const bodies = state.parcoursList.map((p) => formatParcoursFromPlan(byId.get(p.id)!, p, state))
-  return header + bodies.join('\n\n') + '\n'
+
+  let running = ''
+  const map = canonicalRunningNumbers(state)
+  if (map) {
+    // Klassische Nummern fortlaufend über alle Parcours (Verzahnungs-Reihenfolge).
+    const ordered = state.parcoursList.flatMap((p) => byId.get(p.id)?.sequence ?? [])
+    const list = ordered.map((p) => `${map.get(p.id)}→${p.startNr}`).join(', ')
+    running =
+      `\n\n## Klassische Startnummern (fortlaufend über alle Parcours, Verzahnungs-Reihenfolge)\n` +
+      `${list}\n`
+  }
+
+  return header + bodies.join('\n\n') + running + '\n'
 }

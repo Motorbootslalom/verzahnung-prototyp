@@ -13,6 +13,25 @@ export interface BoatConfig {
   gross: number
 }
 
+/** Welche Verzahnung die einheitliche klassische Startnummer festlegt. */
+export type RunningNumberSource = 'manoever' | 'parallel'
+
+/**
+ * Klassische, fortlaufende Startnummern (1, 2, 3, …), die den Startern in der
+ * Reihenfolge der Verzahnung zugewiesen werden – zusätzlich zu den
+ * klassenbasierten Startnummern (E01, 312, …).
+ */
+export interface RunningNumberConfig {
+  /** Klassische Nummerierung anzeigen/zuweisen. */
+  enabled: boolean
+  /** Maßgebliche Verzahnung für die Reihenfolge (Standard: Manövrieren). */
+  source: RunningNumberSource
+  /** Startwert der Nummerierung (Standard 1). */
+  start: number
+  /** Rohtext der zu überspringenden (fehlenden) Nummern, z. B. "7, 13, 20". */
+  skipText: string
+}
+
 export interface Participant {
   id: string
   startNr: string
@@ -71,6 +90,8 @@ export interface AppState {
    * Klasse E heißt „Dolphin". Standard: true.
    */
   parallelInternational: boolean
+  /** Klassische fortlaufende Startnummern (nach Verzahnung vergeben). */
+  runningNumbers: RunningNumberConfig
   /** true sobald das initiale Setup abgeschlossen ist */
   initialized: boolean
 }

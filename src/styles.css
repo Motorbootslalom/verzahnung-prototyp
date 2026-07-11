@@ -923,3 +923,38 @@ table.starters tr:hover td {
   color: var(--muted);
   font-weight: 700;
 }
+
+/* ---------- Klassische Startnummern ---------- */
+.running-head {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.running-fields {
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  margin-top: 12px;
+}
+
+/* Startnummer-Anzeige: klassische Nummer primär, klassenbasierte klein darunter. */
+.startnr-combo {
+  display: inline-flex;
+  flex-direction: column;
+  line-height: 1.1;
+}
+
+.startnr-main {
+  font-weight: 800;
+  font-size: 14px;
+  font-variant-numeric: tabular-nums;
+}
+
+.startnr-sub {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--muted);
+}

@@ -6,8 +6,12 @@ import {
   formatParallelExport,
   type ParallelHeat,
   type ParallelOptions,
+  type ParallelPlan,
   type ParallelSlot,
 } from '../lib/parallel'
+import { canonicalRunningNumbers } from '../lib/running'
+import { RunningNumberControls } from './RunningNumberControls'
+import { StartNr } from './StartNr'
 import type { AppState } from '../types'
 
 async function copyText(text: string): Promise<boolean> {
@@ -32,6 +36,10 @@ export function ParallelView() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [state.participants, opts.international, opts.class4Small],
   )
+
+  // Kanonische klassische Startnummern (aus der Manövrier-Verzahnung) – dieselben
+  // Nummern wie in der Teilnehmer-Liste; hier wird nur angezeigt, nicht neu gezählt.
+  const runningMap = useMemo(() => canonicalRunningNumbers(state), [state])
 
   const kleinLine =
     `${plan.kleinStarter} Starter` + (plan.kleinDummy ? ' + 1 Dummy' : '')
@@ -84,10 +92,12 @@ export function ParallelView() {
         </div>
       </div>
 
-      <ExportPanel state={state} plan={plan} opts={opts} />
+      <ExportPanel state={state} plan={plan} opts={opts} running={runningMap} />
+
+      <RunningNumberControls />
 
       <div className="panel">
-        <HeatTable heats={plan.heats} international={opts.international} />
+        <HeatTable heats={plan.heats} international={opts.international} running={runningMap} />
       </div>
     </>
   )
@@ -97,17 +107,19 @@ function ExportPanel({
   state,
   plan,
   opts,
+  running,
 }: {
   state: AppState
-  plan: ReturnType<typeof buildParallelPlan>
+  plan: ParallelPlan
   opts: ParallelOptions
+  running: Map<string, number> | null
 }) {
   const [open, setOpen] = useState(false)
   const [copied, setCopied] = useState(false)
 
   const text = useMemo(
-    () => formatParallelExport(plan, opts, state.eventName, state.eventJahr),
-    [plan, opts, state.eventName, state.eventJahr],
+    () => formatParallelExport(plan, opts, state.eventName, state.eventJahr, running),
+    [plan, opts, state.eventName, state.eventJahr, running],
   )
 
   async function copy() {
@@ -137,9 +149,11 @@ function ExportPanel({
 function SlotCell({
   slot,
   international,
+  runNr,
 }: {
   slot: ParallelSlot
   international: boolean
+  runNr?: number
 }) {
   if (slot.kind === 'dummy') {
     return (
@@ -163,7 +177,9 @@ function SlotCell({
         {parallelClassBadge(p.klasse, international)}
       </span>
       <span className="slot-main">
-        <span className="slot-nr">{p.startNr}</span>
+        <span className="slot-nr">
+          <StartNr startNr={p.startNr} runNr={runNr} />
+        </span>
         <span className="slot-name">
           {p.nachname}, {p.vorname}
         </span>
@@ -175,10 +191,15 @@ function SlotCell({
 function HeatTable({
   heats,
   international,
+  running,
 }: {
   heats: ParallelHeat[]
   international: boolean
+  running: Map<string, number> | null
 }) {
+  const numNr = (slot: ParallelSlot) =>
+    slot.kind === 'starter' ? running?.get(slot.p.id) : undefined
+
   if (heats.length === 0) {
     return (
       <div className="empty">
@@ -216,10 +237,10 @@ function HeatTable({
                   )}
                 </td>
                 <td>
-                  <SlotCell slot={h.a} international={international} />
+                  <SlotCell slot={h.a} international={international} runNr={numNr(h.a)} />
                 </td>
                 <td>
-                  <SlotCell slot={h.b} international={international} />
+                  <SlotCell slot={h.b} international={international} runNr={numNr(h.b)} />
                 </td>
               </tr>
             ))}
