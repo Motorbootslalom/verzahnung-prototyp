@@ -30,8 +30,10 @@ Alle Daten liegen ausschließlich **lokal im Browser** (localStorage) und überl
 - **Boote & Bootbedarf:** Klassen E–3 fahren mit **kleinem**, 4–7 mit **großem** Boot; Klasse 4 kann
   per Umschalter ausnahmsweise klein fahren. Die vorhandenen Boote (klein/groß) sind einstellbar. Je
   Spur wird ein Boot benötigt; ein Boot darf erst nach **1 Starter Puffer** die Spur wechseln. Die
-  automatische Verzahnung **hält den Bootbestand ein** – reichen die Boote nicht, wird die Anordnung
-  entsprechend reduziert (weniger parallele Spuren). Oberhalb der Parcours zeigt ein Hinweis den
+  automatische Verzahnung **hält den Bootbestand ein** – da jede Spur nur ein Boot **ihres** Typs
+  belegt, werden auch **bootstyp-getrennte** Anordnungen geprüft (z. B. 1 kleines + 2 große Boote →
+  1 Spur E–3 · 2 Spuren 4–7). Erst wenn die Boote **je Typ** nicht reichen, wird auf weniger Spuren
+  reduziert. Oberhalb der Parcours zeigt ein Hinweis den
   aktuellen Bedarf und – falls dadurch nur eine schlechtere Verzahnung möglich ist – wie viele
   Zusatzboote die optimale ermöglichen würden. Parcours laufen parallel, der Bedarf addiert sich.
 - **Parallel-Slalom:** Eigener Tab für die zweite Disziplin. Zwei parallele Parcours (A/B); je

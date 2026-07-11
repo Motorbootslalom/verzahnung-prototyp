@@ -49,11 +49,42 @@ function trackSum(track: TrackItem[], counts: Map<ClassId, number>): number {
   return track.reduce((s, it) => s + (it.kind === 'class' ? counts.get(it.klasse) ?? 0 : 0), 0)
 }
 
+/**
+ * Bootstyp-getrennte Anordnungen: die Spuren werden auf kleine und große Klassen
+ * aufgeteilt (z. B. 1 Spur E–3 · 2 Spuren 4–7). So belegt jede Spur nur ein Boot
+ * ihres Typs – wichtig, damit eine Verzahnung auch mit knappen, unterschiedlich
+ * verteilten Booten (z. B. 1 klein + 2 groß) fahrbar bleibt.
+ */
+function boatSeparatedCandidates(
+  factor: number,
+  classes: ClassId[],
+  counts: Map<ClassId, number>,
+  typeOf: (k: ClassId) => BoatType,
+): TrackItem[][][] {
+  const klein = classes.filter((c) => typeOf(c) === 'klein')
+  const gross = classes.filter((c) => typeOf(c) === 'gross')
+  // Nur sinnvoll, wenn beide Bootstypen vorkommen (sonst deckt Greedy es ab).
+  if (klein.length === 0 || gross.length === 0) return []
+
+  const out: TrackItem[][][] = []
+  for (let kKlein = 1; kKlein <= factor - 1; kKlein++) {
+    const kGross = factor - kKlein
+    // Keine leeren Spuren erzeugen: nicht mehr Spuren als Klassen je Bootstyp.
+    if (kKlein > klein.length || kGross > gross.length) continue
+    out.push([
+      ...autoDistribute(klein, counts, kKlein),
+      ...autoDistribute(gross, counts, kGross),
+    ])
+  }
+  return out
+}
+
 /** Kandidaten-Anordnungen für einen Wechselfaktor. */
 function candidatesForFactor(
   factor: number,
   classes: ClassId[],
   counts: Map<ClassId, number>,
+  typeOf: (k: ClassId) => BoatType,
 ): TrackItem[][][] {
   if (factor <= 1) return [[groupToTrack(classes)]]
 
@@ -72,8 +103,12 @@ function candidatesForFactor(
     return out
   }
 
-  // Faktor 3/4: nur die Greedy-Verteilung als Kandidat (Enumeration wäre teuer).
-  return [autoDistribute(classes, counts, factor)]
+  // Faktor 3/4: Greedy-Verteilung plus bootstyp-getrennte Anordnungen, damit auch
+  // bei knappen/unterschiedlich verteilten Booten eine volle Spurzahl fahrbar ist.
+  return [
+    autoDistribute(classes, counts, factor),
+    ...boatSeparatedCandidates(factor, classes, counts, typeOf),
+  ]
 }
 
 type Quality = { nonWechsel: number; trailingRun: number; imbalance: number }
@@ -167,7 +202,7 @@ export function bestArrangement(
   }
 
   // Unbeschränktes Optimum beim gewünschten Faktor (bei Gleichstand bootsparend).
-  const atRequested = candidatesForFactor(requestedFactor, classes, counts).map((t) =>
+  const atRequested = candidatesForFactor(requestedFactor, classes, counts, typeOf).map((t) =>
     evaluate(t, byClass, counts, typeOf),
   )
   const optimal = pickBest(atRequested) ?? evaluate([groupToTrack(classes)], byClass, counts, typeOf)
@@ -188,7 +223,7 @@ export function bestArrangement(
   for (let f = requestedFactor; f >= 1; f--) {
     const cands = (f === requestedFactor
       ? atRequested
-      : candidatesForFactor(f, classes, counts).map((t) => evaluate(t, byClass, counts, typeOf))
+      : candidatesForFactor(f, classes, counts, typeOf).map((t) => evaluate(t, byClass, counts, typeOf))
     ).filter((c) => fits(c.demand, budget))
     const best = pickBest(cands)
     if (best) return finalize(best)

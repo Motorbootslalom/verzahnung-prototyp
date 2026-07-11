@@ -34,6 +34,48 @@ describe('bestArrangement – Boot-Beschränkung', () => {
   })
 })
 
+describe('bestArrangement – bootstyp-getrennte Spuren bei knappen Booten', () => {
+  const ps = [
+    ...make('E', 4),
+    ...make('1', 4),
+    ...make('2', 4),
+    ...make('3', 4),
+    ...make('4', 6),
+    ...make('5', 6),
+    ...make('6', 6),
+    ...make('7', 6),
+  ]
+  const parc: Parcours = {
+    id: 'p',
+    name: 'P',
+    classIds: ['E', '1', '2', '3', '4', '5', '6', '7'],
+    wechselFaktor: 3,
+  }
+
+  it('1 klein + 2 groß erlaubt volle 3er-Verzahnung (1 Spur E–3, 2 Spuren 4–7)', () => {
+    const plan = bestArrangement(parc, ps, false, { klein: 1, gross: 2 })
+    expect(plan.effectiveTracks).toBe(3) // nicht auf 2 reduziert
+    expect(plan.demand.klein).toBeLessThanOrEqual(1)
+    expect(plan.demand.gross).toBeLessThanOrEqual(2)
+    // jede Spur führt nur einen Bootstyp (Klasse passt zum Boot)
+    const boat = (t: (typeof plan.tracks)[number]) =>
+      t.every((it) => it.kind !== 'class' || ['E', '1', '2', '3'].includes(it.klasse))
+        ? 'klein'
+        : t.every((it) => it.kind !== 'class' || ['4', '5', '6', '7'].includes(it.klasse))
+          ? 'gross'
+          : 'gemischt'
+    const usedTracks = plan.tracks.filter((t) => t.some((i) => i.kind === 'class'))
+    expect(usedTracks.every((t) => boat(t) !== 'gemischt')).toBe(true)
+  })
+
+  it('2 klein + 1 groß erlaubt ebenfalls volle 3er-Verzahnung (gespiegelt)', () => {
+    const plan = bestArrangement(parc, ps, false, { klein: 2, gross: 1 })
+    expect(plan.effectiveTracks).toBe(3)
+    expect(plan.demand.klein).toBeLessThanOrEqual(2)
+    expect(plan.demand.gross).toBeLessThanOrEqual(1)
+  })
+})
+
 describe('bestArrangement – Klasse-4-Umschaltung entlastet große Boote', () => {
   const ps = [...make('4', 4), ...make('5', 4)]
   const parc: Parcours = { id: 'p', name: 'P', classIds: ['4', '5'], wechselFaktor: 2 }

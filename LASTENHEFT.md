@@ -126,8 +126,11 @@ abgearbeitet, sodass zwischen zwei Starts möglichst ein Klassen-/Bootswechsel l
 - **LH-16:** Die vorhandene Anzahl **kleiner** und **großer** Boote ist einstellbar.
 - **LH-17:** Modell: Jede Spur belegt, solange sie einen Bootstyp fährt, **ein** Boot dieses Typs.
   Ein frei gewordenes Boot darf erst nach einem **Puffer von 1 Starter** die Spur wechseln.
-- **LH-18:** Die automatische Verzahnung **hält den Bootbestand ein**. Reichen die Boote nicht für die
-  optimale Anzahl paralleler Spuren, wird auf weniger Spuren reduziert.
+- **LH-18:** Die automatische Verzahnung **hält den Bootbestand ein**. Da jede Spur nur **ein** Boot
+  **ihres** Typs belegt, werden dazu auch **bootstyp-getrennte** Anordnungen geprüft (z. B. bei 1
+  kleinen + 2 großen Booten: 1 Spur E–3 · 2 Spuren 4–7). Die volle Spurzahl bleibt fahrbar, solange
+  die Boote **je Typ** reichen; erst wenn selbst das nicht möglich ist, wird auf weniger Spuren
+  reduziert.
 - **LH-19:** Oberhalb der Parcours wird der aktuelle **Bootbedarf** (klein/groß) angezeigt sowie – bei
   Engpass – wie viele **Zusatzboote** die optimale Verzahnung ermöglichen würden. Parcours laufen
   parallel, ihr Bedarf **addiert** sich.
