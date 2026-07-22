@@ -17,6 +17,7 @@ import { useStore } from '../state/store'
 import { CLASSES, CLASS_IDS, classColor, getClass } from '../lib/classes'
 import { classCounts, itemDragId } from '../lib/verzahnung'
 import { formatVerzahnungExport } from '../lib/exportText'
+import { formatStartlistTsv, formatParticipantsTsv } from '../lib/tsv'
 import { buildConfigUrl } from '../lib/urlconfig'
 import { planEvent, type EventPlan, type ParcoursPlan } from '../lib/plan'
 import { canonicalRunningNumbers } from '../lib/running'
@@ -243,13 +244,15 @@ async function copyText(text: string): Promise<boolean> {
  * Aufklappbare Box zum Exportieren der aktuellen Verzahnung (für die
  * Optimierung durch Claude) sowie zum Erzeugen eines teilbaren Konfig-Links.
  */
+type CopyKind = 'export' | 'link' | 'startlist' | 'participants'
+
 function ExportPanel({ state }: { state: AppState }) {
   const [open, setOpen] = useState(false)
-  const [copied, setCopied] = useState<'export' | 'link' | null>(null)
+  const [copied, setCopied] = useState<CopyKind | null>(null)
 
   const exportText = useMemo(() => formatVerzahnungExport(state), [state])
 
-  async function flash(which: 'export' | 'link', text: string) {
+  async function flash(which: CopyKind, text: string) {
     const ok = await copyText(text)
     if (ok) {
       setCopied(which)
@@ -267,16 +270,31 @@ function ExportPanel({ state }: { state: AppState }) {
           {open ? '▾' : '▸'} Für Optimierung exportieren
         </button>
         <span className="spacer" style={{ flex: 1 }} />
+        <button
+          className="btn sm"
+          onClick={() => flash('participants', formatParticipantsTsv(state))}
+          title="Teilnehmerliste als TSV (Excel) in die Zwischenablage"
+        >
+          {copied === 'participants' ? '✓ Kopiert' : '📋 Teilnehmer (Excel)'}
+        </button>
+        <button
+          className="btn sm"
+          onClick={() => flash('startlist', formatStartlistTsv(state))}
+          title="Verzahnte Startliste als TSV (Excel) in die Zwischenablage"
+        >
+          {copied === 'startlist' ? '✓ Kopiert' : '📊 Startliste (Excel)'}
+        </button>
         <button className="btn sm" onClick={() => flash('link', configUrl())} title={configUrl()}>
-          {copied === 'link' ? '✓ Link kopiert' : '🔗 Konfig-Link kopieren'}
+          {copied === 'link' ? '✓ Link kopiert' : '🔗 Konfig-Link'}
         </button>
         <button className="btn sm primary" onClick={() => flash('export', exportText)}>
-          {copied === 'export' ? '✓ Kopiert' : '📋 Verzahnung kopieren'}
+          {copied === 'export' ? '✓ Kopiert' : '📋 Verzahnung (Text)'}
         </button>
       </div>
       <p className="hint" style={{ margin: '8px 0 0' }}>
-        Kopiere die Verzahnung als Text und gib sie Claude zur Optimierung – oder teile den
-        Konfig-Link (Klassenverteilung, Parcours &amp; Faktoren), um dieses Szenario direkt zu öffnen.
+        Übernimm das Ergebnis nach Excel: <b>Startliste (verzahnt)</b> oder <b>Teilnehmerliste</b> als
+        TSV kopieren und in Excel einfügen. Oder die Verzahnung als Text an Claude zur Optimierung
+        geben bzw. den Konfig-Link teilen.
       </p>
       {open && <textarea className="export-text" readOnly value={exportText} rows={16} />}
     </div>

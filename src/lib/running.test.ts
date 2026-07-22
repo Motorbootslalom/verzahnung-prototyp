@@ -17,6 +17,7 @@ function mk(klasse: ClassId, n: number): Participant[] {
     verein: 'C',
     bundesland: 'B',
     geburtsdatum: '2015-01-01',
+    groesse: '',
     klasse,
   }))
 }

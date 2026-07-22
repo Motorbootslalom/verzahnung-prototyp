@@ -11,6 +11,12 @@ import type {
   WechselFaktor,
 } from '../types'
 import { generateParticipants } from '../lib/generate'
+import {
+  moveInOrder,
+  orderBySize,
+  renumberSequential,
+  sortedByStartNr,
+} from '../lib/startnumbers'
 import { loadState, saveState, clearState } from '../lib/storage'
 
 function uid(prefix: string): string {
@@ -58,8 +64,12 @@ export type Action =
   | { type: 'SET_PARALLEL_ORDER_BY_STARTNR'; value: boolean }
   | { type: 'SET_RUNNING_NUMBERS'; patch: Partial<RunningNumberConfig> }
   | { type: 'GENERATE'; klasse: ClassId; count: number }
+  | { type: 'IMPORT_PARTICIPANTS'; participants: Participant[]; mode: 'replace' | 'merge' }
   | { type: 'ADD_PARTICIPANT'; participant: Participant }
   | { type: 'UPDATE_PARTICIPANT'; id: string; patch: Partial<Participant> }
+  | { type: 'SET_START_NR'; id: string; startNr: string }
+  | { type: 'MOVE_STARTER'; id: string; target: 'first' | 'last' | 'up' | 'down' }
+  | { type: 'RENUMBER_CLASS_BY_SIZE'; klasse: ClassId }
   | { type: 'REMOVE_PARTICIPANT'; id: string }
   | { type: 'CLEAR_CLASS'; klasse: ClassId }
   | { type: 'ADD_PARCOURS' }
@@ -71,6 +81,25 @@ export type Action =
   | { type: 'SET_PARCOURS_TRACKS'; id: string; tracks: TrackItem[][] }
   | { type: 'RESET_TRACKS'; id: string }
   | { type: 'RESET_ALL' }
+
+/** Schlüssel zur Duplikat-Erkennung beim Zusammenführen (Name + Klasse). */
+function dupKey(p: Participant): string {
+  return `${p.klasse}|${p.nachname.trim().toLowerCase()}|${p.vorname.trim().toLowerCase()}`
+}
+
+/**
+ * Ersetzt in `participants` die Nummern einer Klasse durch fortlaufende Nummern
+ * gemäß der übergebenen (neuen) Reihenfolge dieser Klasse. Andere Klassen und die
+ * globale Reihenfolge des Arrays bleiben unberührt.
+ */
+function applyClassOrder(
+  participants: Participant[],
+  klasse: ClassId,
+  orderedInClass: Participant[],
+): Participant[] {
+  const renumbered = new Map(renumberSequential(orderedInClass).map((p) => [p.id, p]))
+  return participants.map((p) => (p.klasse === klasse ? renumbered.get(p.id) ?? p : p))
+}
 
 function reducer(state: AppState, action: Action): AppState {
   switch (action.type) {
@@ -138,6 +167,15 @@ function reducer(state: AppState, action: Action): AppState {
       return { ...state, participants: state.participants.concat(neu) }
     }
 
+    case 'IMPORT_PARTICIPANTS': {
+      if (action.mode === 'replace') {
+        return { ...state, participants: action.participants }
+      }
+      const seen = new Set(state.participants.map(dupKey))
+      const additions = action.participants.filter((p) => !seen.has(dupKey(p)))
+      return { ...state, participants: state.participants.concat(additions) }
+    }
+
     case 'ADD_PARTICIPANT':
       return { ...state, participants: state.participants.concat(action.participant) }
 
@@ -148,6 +186,30 @@ function reducer(state: AppState, action: Action): AppState {
           p.id === action.id ? { ...p, ...action.patch } : p,
         ),
       }
+
+    case 'SET_START_NR':
+      return {
+        ...state,
+        participants: state.participants.map((p) =>
+          p.id === action.id ? { ...p, startNr: action.startNr } : p,
+        ),
+      }
+
+    case 'MOVE_STARTER': {
+      const target = state.participants.find((p) => p.id === action.id)
+      if (!target) return state
+      const inClass = sortedByStartNr(state.participants.filter((p) => p.klasse === target.klasse))
+      const moved = moveInOrder(inClass, action.id, action.target)
+      return { ...state, participants: applyClassOrder(state.participants, target.klasse, moved) }
+    }
+
+    case 'RENUMBER_CLASS_BY_SIZE': {
+      const inClass = state.participants.filter((p) => p.klasse === action.klasse)
+      return {
+        ...state,
+        participants: applyClassOrder(state.participants, action.klasse, orderBySize(inClass)),
+      }
+    }
 
     case 'REMOVE_PARTICIPANT':
       return { ...state, participants: state.participants.filter((p) => p.id !== action.id) }
@@ -233,8 +295,10 @@ function reducer(state: AppState, action: Action): AppState {
 
 function init(): AppState {
   const loaded = loadState()
-  if (loaded) return { ...emptyState, ...loaded }
-  return emptyState
+  if (!loaded) return emptyState
+  // Migration: älterer Speicherstand kennt das Feld `groesse` noch nicht.
+  const participants = loaded.participants.map((p) => ({ ...p, groesse: p.groesse ?? '' }))
+  return { ...emptyState, ...loaded, participants }
 }
 
 interface StoreContextValue {

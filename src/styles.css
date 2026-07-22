@@ -406,6 +406,64 @@ table.starters tr:hover td {
   background: var(--danger-soft);
 }
 
+/* Startnummern-Editor (verschieben & Nummer ändern) */
+.nr-edit {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.nr-input {
+  width: 54px;
+  text-align: center;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 4px 5px;
+  font-variant-numeric: tabular-nums;
+  font-weight: 700;
+  color: var(--accent);
+}
+
+.nr-input[aria-invalid='true'] {
+  border-color: var(--danger);
+  background: var(--danger-soft);
+  color: var(--danger);
+}
+
+.nr-moves {
+  display: inline-flex;
+  gap: 2px;
+}
+
+.nr-moves .mv {
+  border: 1px solid var(--border);
+  background: var(--panel);
+  color: var(--muted);
+  border-radius: 5px;
+  padding: 2px 4px;
+  font-size: 11px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.nr-moves .mv:hover:not(:disabled) {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.nr-moves .mv:disabled {
+  opacity: 0.35;
+  cursor: default;
+}
+
+.size-select {
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 3px 4px;
+  font-size: 12px;
+  background: var(--panel);
+}
+
 .empty {
   color: var(--muted);
   font-size: 13px;

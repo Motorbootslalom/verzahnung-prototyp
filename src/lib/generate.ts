@@ -2,6 +2,7 @@ import type { ClassId, OriginMode, Participant } from '../types'
 import { birthYearRange } from './classes'
 import { CLUBS, BUNDESLAENDER } from '../data/clubs'
 import { VORNAMEN_M, VORNAMEN_W, NACHNAMEN } from '../data/names'
+import { SIZES } from './sizes'
 
 function pick<T>(arr: T[]): T {
   return arr[Math.floor(Math.random() * arr.length)]
@@ -81,6 +82,7 @@ export function generateParticipant(
     bundesland,
     geburtsdatum: randomGeburtsdatum(klasse, eventJahr),
     klasse,
+    groesse: pick(SIZES as readonly string[] as string[]),
   }
 }
 

@@ -90,8 +90,35 @@ Werkzeug soll später in das neue **Auswertungstool** integriert werden.
 ### 4.3 Teilnehmerverwaltung
 
 - **LH-04:** Teilnehmer können pro Klasse angelegt, bearbeitet und entfernt werden (Name, Vorname,
-  Geburtsdatum, Herkunft = Verein **oder** Bundesland, Klasse, Startnummer).
+  Geburtsdatum, Herkunft = Verein **oder** Bundesland, Klasse, Startnummer, **Größe**).
 - **LH-05:** Das Starterfeld ist die gemeinsame Datengrundlage **beider** Disziplinen.
+- **LH-06 (Größe):** Jeder Starter trägt eine Konfektionsgröße (`XS`, `S`, `M`, `L`, `XL`, `XXL`,
+  `XXXL`). Sie bestimmt die Standard-Reihenfolge der klassenbasierten Startnummern innerhalb einer
+  Klasse: kleine Größen vorn, große (`XXL`/`XXXL`) hinten.
+
+### 4.4 Datenaustausch mit Excel (TSV)
+
+- **LH-07 (Import):** Eine Teilnehmerliste kann per Copy&Paste aus Excel als **TSV** importiert
+  werden. Eine **Kopfzeile** wird automatisch erkannt (Spaltenreihenfolge dann egal, unbekannte
+  Spalten ignoriert); fehlt sie, gilt die feste Reihenfolge *Startnummer · Klasse · Nachname ·
+  Vorname · Verein · Bundesland · Geburtsdatum · Größe*. Geburtsdatum wird als `TT.MM.JJJJ` oder ISO
+  akzeptiert; `Dolphin`/`D` gilt als Klasse `E`. Zeilen ohne gültige Klasse/Namen werden mit Hinweis
+  übersprungen. Fehlende Startnummern werden je Klasse nach Größe vergeben.
+- **LH-08 (Import-Modus):** Beim Import ist wählbar zwischen **Alle ersetzen** (neue vollständige
+  Liste) und **Ergänzen** (Duplikate nach Name + Klasse werden übersprungen).
+- **LH-09 (Export):** Das Ergebnis kann als **TSV** in die Zwischenablage kopiert und in Excel
+  eingefügt werden – als **verzahnte Startliste** (eine Zeile je Start, Verzahnungs-Reihenfolge über
+  alle Parcours) oder als **Teilnehmerliste** (round-trip-fähig, wieder importierbar).
+
+### 4.5 Klassenbasierte Startnummern bearbeiten
+
+- **LH-10 (Verschieben):** Innerhalb einer Klasse lassen sich Starter an den **Anfang**, ans **Ende**
+  oder um eine Position verschieben; die klassenbasierten Nummern werden dabei fortlaufend neu
+  vergeben.
+- **LH-11 (Nummer ändern):** Die klassenbasierte Startnummer eines Starters kann direkt editiert
+  werden; doppelt vergebene Nummern werden markiert.
+- **LH-12 (Nach Größe):** Pro Klasse können die Startnummern per Aktion nach Größe neu vergeben werden
+  (klein → groß).
 
 ---
 
@@ -323,7 +350,8 @@ Sie entsprechen z. B. den physischen Nummernschildern in Startreihenfolge.
 
 - **AB-1:** Integration in das **Auswertungstool** (Übernahme der Startliste als Eingangsgröße für
   Zeitmessung und Wertung).
-- **AB-2:** Import **realer Meldedaten** statt Zufallsgenerierung.
+- **AB-2:** ~~Import **realer Meldedaten** statt Zufallsgenerierung.~~ Umgesetzt via TSV-Import
+  (LH-07/08); eine direkte Anbindung an ein Meldeportal bleibt Ausblick.
 - **AB-3:** Druck-/PDF-Ausgabe der Startlisten inkl. Blocktrennung.
 - **AB-4:** Ergebnis-/Wertungsanzeige je Klasse (unter Berücksichtigung des Bootstyps als
   Wertungsbezug).

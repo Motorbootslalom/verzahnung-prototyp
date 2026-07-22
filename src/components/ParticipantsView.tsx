@@ -2,13 +2,16 @@ import { useMemo, useState } from 'react'
 import { useStore } from '../state/store'
 import { CLASSES, ageHint, birthYearRange, getClass } from '../lib/classes'
 import { canonicalRunningNumbers } from '../lib/running'
+import { sortedByStartNr } from '../lib/startnumbers'
+import { SIZES } from '../lib/sizes'
 import { RunningNumberControls } from './RunningNumberControls'
+import { ExcelPanel } from './ExcelPanel'
 import { StartNr } from './StartNr'
 import type { ClassId, Participant } from '../types'
 
 function formatDate(iso: string): string {
-  const [y, m, d] = iso.split('-')
-  return `${d}.${m}.${y}`
+  const m = iso.match(/^(\d{4})-(\d{2})-(\d{2})$/)
+  return m ? `${m[3]}.${m[2]}.${m[1]}` : iso || '–'
 }
 
 export function ParticipantsView() {
@@ -19,8 +22,7 @@ export function ParticipantsView() {
     const m = new Map<ClassId, Participant[]>()
     for (const c of CLASSES) m.set(c.id, [])
     for (const p of state.participants) m.get(p.klasse)!.push(p)
-    for (const list of m.values())
-      list.sort((a, b) => a.startNr.localeCompare(b.startNr, 'de', { numeric: true }))
+    for (const [k, list] of m) m.set(k, sortedByStartNr(list))
     return m
   }, [state.participants])
 
@@ -40,6 +42,7 @@ export function ParticipantsView() {
   return (
     <>
       <SettingsPanel />
+      <ExcelPanel />
       <RunningNumberControls />
       <div className="panel">
         <h2>Teilnehmer verwalten</h2>
@@ -148,10 +151,18 @@ function ClassSection({
   onRemove,
   onAdd,
 }: ClassSectionProps) {
-  const { state } = useStore()
+  const { state, dispatch } = useStore()
   const def = getClass(classId)
   const [count, setCount] = useState(3)
   const [showAdd, setShowAdd] = useState(false)
+  const [editNr, setEditNr] = useState(false)
+
+  // Doppelt vergebene Startnummern in dieser Klasse (für die Warnmarkierung).
+  const duplicates = useMemo(() => {
+    const seen = new Map<string, number>()
+    for (const p of starters) seen.set(p.startNr, (seen.get(p.startNr) ?? 0) + 1)
+    return new Set([...seen].filter(([, n]) => n > 1).map(([nr]) => nr))
+  }, [starters])
 
   return (
     <div className="class-section">
@@ -180,6 +191,26 @@ function ClassSection({
             Manuell
           </button>
           <button
+            className={`btn sm ${editNr ? 'primary' : ''}`}
+            disabled={starters.length === 0}
+            onClick={() => {
+              const next = !editNr
+              setEditNr(next)
+              if (next && !open) onToggle()
+            }}
+            title="Startnummern bearbeiten: verschieben und Nummer ändern"
+          >
+            ✎ Nummern
+          </button>
+          <button
+            className="btn sm"
+            disabled={starters.length === 0}
+            onClick={() => dispatch({ type: 'RENUMBER_CLASS_BY_SIZE', klasse: classId })}
+            title="Startnummern nach Größe neu vergeben (klein → groß)"
+          >
+            ↕ Größe
+          </button>
+          <button
             className="btn sm danger"
             disabled={starters.length === 0}
             onClick={() => {
@@ -206,23 +237,96 @@ function ClassSection({
             <table className="starters">
               <thead>
                 <tr>
-                  <th style={{ width: 64 }}>{running ? 'Start-Nr.' : 'S-Nr.'}</th>
+                  <th style={{ width: editNr ? 150 : 64 }}>{running ? 'Start-Nr.' : 'S-Nr.'}</th>
                   <th>Name</th>
                   <th>Vorname</th>
                   <th>{state.originMode === 'bundesland' ? 'Bundesland' : 'Verein'}</th>
+                  <th style={{ width: 56 }}>Größe</th>
                   <th style={{ width: 100 }}>Geb.-Datum</th>
                   <th style={{ width: 40 }} />
                 </tr>
               </thead>
               <tbody>
-                {starters.map((p) => (
+                {starters.map((p, i) => (
                   <tr key={p.id}>
                     <td className="num">
-                      <StartNr startNr={p.startNr} runNr={running?.get(p.id)} />
+                      {editNr ? (
+                        <div className="nr-edit">
+                          <input
+                            className="nr-input"
+                            value={p.startNr}
+                            aria-invalid={duplicates.has(p.startNr)}
+                            title={
+                              duplicates.has(p.startNr)
+                                ? 'Startnummer doppelt vergeben'
+                                : 'Startnummer ändern'
+                            }
+                            onChange={(e) =>
+                              dispatch({ type: 'SET_START_NR', id: p.id, startNr: e.target.value })
+                            }
+                          />
+                          <span className="nr-moves">
+                            <button
+                              className="mv"
+                              disabled={i === 0}
+                              title="An den Anfang"
+                              onClick={() => dispatch({ type: 'MOVE_STARTER', id: p.id, target: 'first' })}
+                            >
+                              ⤒
+                            </button>
+                            <button
+                              className="mv"
+                              disabled={i === 0}
+                              title="Eins nach oben"
+                              onClick={() => dispatch({ type: 'MOVE_STARTER', id: p.id, target: 'up' })}
+                            >
+                              ▲
+                            </button>
+                            <button
+                              className="mv"
+                              disabled={i === starters.length - 1}
+                              title="Eins nach unten"
+                              onClick={() => dispatch({ type: 'MOVE_STARTER', id: p.id, target: 'down' })}
+                            >
+                              ▼
+                            </button>
+                            <button
+                              className="mv"
+                              disabled={i === starters.length - 1}
+                              title="Ans Ende"
+                              onClick={() => dispatch({ type: 'MOVE_STARTER', id: p.id, target: 'last' })}
+                            >
+                              ⤓
+                            </button>
+                          </span>
+                        </div>
+                      ) : (
+                        <StartNr startNr={p.startNr} runNr={running?.get(p.id)} />
+                      )}
                     </td>
                     <td>{p.nachname}</td>
                     <td>{p.vorname}</td>
                     <td>{state.originMode === 'bundesland' ? p.bundesland : p.verein || p.bundesland}</td>
+                    <td>
+                      {editNr ? (
+                        <select
+                          className="size-select"
+                          value={SIZES.includes(p.groesse as (typeof SIZES)[number]) ? p.groesse : ''}
+                          onChange={(e) =>
+                            dispatch({ type: 'UPDATE_PARTICIPANT', id: p.id, patch: { groesse: e.target.value } })
+                          }
+                        >
+                          <option value="">–</option>
+                          {SIZES.map((s) => (
+                            <option key={s} value={s}>
+                              {s}
+                            </option>
+                          ))}
+                        </select>
+                      ) : (
+                        p.groesse || '–'
+                      )}
+                    </td>
                     <td>{formatDate(p.geburtsdatum)}</td>
                     <td>
                       <button className="del" title="Entfernen" onClick={() => onRemove(p.id)}>
@@ -257,6 +361,7 @@ function ManualAddForm({
   const [nachname, setNachname] = useState('')
   const [herkunft, setHerkunft] = useState('')
   const [geb, setGeb] = useState(`${from}-06-15`)
+  const [groesse, setGroesse] = useState('')
 
   function nextStartNr(): string {
     let max = 0
@@ -279,10 +384,12 @@ function ManualAddForm({
       bundesland: herkunft.trim(),
       geburtsdatum: geb,
       klasse: classId,
+      groesse,
     })
     setVorname('')
     setNachname('')
     setHerkunft('')
+    setGroesse('')
     onDone()
   }
 
@@ -313,6 +420,17 @@ function ManualAddForm({
             value={geb}
             onChange={(e) => setGeb(e.target.value)}
           />
+        </div>
+        <div className="field" style={{ width: 80 }}>
+          <label>Größe</label>
+          <select className="input" value={groesse} onChange={(e) => setGroesse(e.target.value)}>
+            <option value="">–</option>
+            {SIZES.map((s) => (
+              <option key={s} value={s}>
+                {s}
+              </option>
+            ))}
+          </select>
         </div>
         <button className="btn primary" onClick={submit} disabled={!vorname.trim() || !nachname.trim()}>
           Hinzufügen

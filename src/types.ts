@@ -44,6 +44,11 @@ export interface Participant {
   /** Geburtsdatum ISO (YYYY-MM-DD) */
   geburtsdatum: string
   klasse: ClassId
+  /**
+   * Konfektionsgröße (XS…XXXL), siehe lib/sizes. Bestimmt die Reihenfolge der
+   * klassenbasierten Startnummern (klein → große Nummer). Kann leer sein.
+   */
+  groesse: string
 }
 
 /** Ein Element innerhalb einer Spur: entweder ein Klassen-Block oder eine Pause. */
