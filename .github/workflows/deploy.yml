@@ -20,16 +20,12 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
-      - uses: actions/setup-node@v6
-        with:
-          node-version: 24
-          cache: npm
-      - run: npm ci
-      - run: npm test
-      - run: npm run build
+      # Der Prototyp lebt in verzahnung-prototyp-vue weiter; die Page leitet nur
+      # noch dorthin um. 404.html fängt alle anderen alten Adressen ab.
+      - run: cp redirect/index.html redirect/404.html
       - uses: actions/upload-pages-artifact@v5
         with:
-          path: dist
+          path: redirect
 
   deploy:
     needs: build

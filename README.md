@@ -1,6 +1,10 @@
 # Verzahnung – Schlauchbootslalom (Prototyp)
 
-**Live-Demo:** <https://motorbootslalom.github.io/verzahnung-prototyp/>
+> **Archiviert:** Dieser React-Prototyp wird nicht mehr weiterentwickelt. Er lebt in
+> [verzahnung-prototyp-vue](https://github.com/Motorbootslalom/verzahnung-prototyp-vue)
+> weiter; die frühere Page-Adresse leitet dorthin um.
+>
+> **Aktuelle Version:** <https://motorbootslalom.github.io/verzahnung-prototyp-vue/>
 
 Interaktiver Konzept-**Prototyp** zur **Verzahnung von Startern** beim Schlauchbootslalom.
 Ziel: mit den Fachteams klären, ob Darstellung und Verwaltung der Starterlisten hilfreich sind
